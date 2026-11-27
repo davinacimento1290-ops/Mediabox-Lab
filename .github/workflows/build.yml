@@ -55,7 +55,7 @@ jobs:
           test -f app/build.gradle
           test -f app/src/main/AndroidManifest.xml
           test -f app/src/main/java/com/mediabox/videohub/MainActivity.java
-          grep -q 'https://mediabox-android.onrender.com/' app/src/main/java/com/mediabox/videohub/MainActivity.java
+          grep -q 'https://mediabox-lab-staging.up.railway.app/' app/src/main/java/com/mediabox/videohub/MainActivity.java
           echo "Estrutura Android e endereço MEDIABOX conferidos."
 
       - name: Compilar APK
