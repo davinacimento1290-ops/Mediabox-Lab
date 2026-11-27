@@ -1312,7 +1312,7 @@ body[data-error-animation="minimal"] #error-intro .intro-effect:before,body[data
 @keyframes errorFade{from{opacity:0}to{opacity:1}}
 @media(max-width:420px){ #error-center{padding:10px}#error-center .error-panel{padding:17px;border-radius:20px}#error-center .error-facts{gap:7px}#error-center .error-fact{padding:9px}#error-center .error-actions{grid-template-columns:1fr}}
 
- .preview-backdrop[hidden]{display:none}.preview-backdrop{position:fixed;inset:0;z-index:9998;background:#02040bdc;display:grid;place-items:center;padding:18px}.preview-dialog{width:min(460px,100%);padding:18px;border:1px solid #344763;border-radius:20px;background:linear-gradient(145deg,#121d30,#0c1321);box-shadow:0 24px 80px #0009}.preview-title{display:flex;align-items:center;justify-content:space-between;gap:12px}.preview-close{width:42px;min-height:40px;padding:8px}.preview-video{position:relative;aspect-ratio:9/16;max-height:54vh;margin:14px auto;background:linear-gradient(145deg,#101a2d,#182a42 48%,#10101e);border:1px solid #40516e;border-radius:13px;overflow:hidden}.preview-video:after{content:"Prévia do vídeo";position:absolute;inset:0;display:grid;place-items:center;color:#ffffff38;font-size:14px;font-weight:700;letter-spacing:1px}.preview-logo{position:absolute;z-index:3;width:30%;height:auto;max-width:150px;opacity:.86;filter:drop-shadow(0 1px 4px #000b);left:88%;top:88%;transform:translate(-50%,-50%);touch-action:none;cursor:grab;user-select:none;-webkit-user-drag:none}.preview-logo:active{cursor:grabbing}.preview-video{touch-action:pan-y}.preview-video:after{pointer-events:none}.preview-mark{position:absolute;z-index:1;display:flex;flex-direction:column;line-height:1.02;text-align:left;filter:drop-shadow(0 1px 4px #000b);opacity:.86;font-size:10px}.preview-mark small{color:#fff;font-size:.62em;font-style:italic;font-weight:800}.preview-mark b{background:linear-gradient(100deg,#13cfff,#6975ff 55%,#c044ff);background-clip:text;-webkit-background-clip:text;color:transparent;font-size:1.12em;font-weight:950;letter-spacing:.4px}.pos-superior_esquerdo .preview-mark{top:12px;left:12px}.pos-superior_direito .preview-mark{top:12px;right:12px;text-align:right}.pos-inferior_esquerdo .preview-mark{bottom:12px;left:12px}.pos-inferior_direito .preview-mark{bottom:12px;right:12px;text-align:right}
+ .preview-backdrop[hidden]{display:none}.preview-backdrop{position:fixed;inset:0;z-index:9998;background:#02040bdc;display:grid;place-items:center;padding:18px}.preview-dialog{width:min(460px,100%);padding:18px;border:1px solid #344763;border-radius:20px;background:linear-gradient(145deg,#121d30,#0c1321);box-shadow:0 24px 80px #0009}.preview-title{display:flex;align-items:center;justify-content:space-between;gap:12px}.preview-close{width:42px;min-height:40px;padding:8px}.preview-video{position:relative;aspect-ratio:9/16;max-height:54vh;margin:14px auto;background:linear-gradient(145deg,#101a2d,#182a42 48%,#10101e);border:1px solid #40516e;border-radius:13px;overflow:hidden}.preview-video:after{content:"Prévia do vídeo";position:absolute;inset:0;display:grid;place-items:center;color:#ffffff38;font-size:14px;font-weight:700;letter-spacing:1px}.preview-logo{position:absolute;z-index:3;width:30%;height:auto;max-width:150px;opacity:.86;filter:drop-shadow(0 1px 4px #000b);left:88%;top:88%;transform:translate(-50%,-50%);touch-action:none;cursor:grab;user-select:none;-webkit-user-drag:none}.preview-logo:active{cursor:grabbing}.preview-video{touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none}.preview-video:after{pointer-events:none}.preview-mark{position:absolute;z-index:1;display:flex;flex-direction:column;line-height:1.02;text-align:left;filter:drop-shadow(0 1px 4px #000b);opacity:.86;font-size:10px}.preview-mark small{color:#fff;font-size:.62em;font-style:italic;font-weight:800}.preview-mark b{background:linear-gradient(100deg,#13cfff,#6975ff 55%,#c044ff);background-clip:text;-webkit-background-clip:text;color:transparent;font-size:1.12em;font-weight:950;letter-spacing:.4px}.pos-superior_esquerdo .preview-mark{top:12px;left:12px}.pos-superior_direito .preview-mark{top:12px;right:12px;text-align:right}.pos-inferior_esquerdo .preview-mark{bottom:12px;left:12px}.pos-inferior_direito .preview-mark{bottom:12px;right:12px;text-align:right}
 
 /* Editor secreto local: não persiste e não envia alterações */
 #mb-local-editor[hidden]{display:none}
@@ -1803,7 +1803,7 @@ style="display:block;text-align:center;text-decoration:none;padding:14px;border-
     <div id="mb-editor-status" class="mb-editor-status" role="status">Aguardando edição.</div>
   </section>
 </div>
-<div id="watermark-preview" hidden class="preview-backdrop" role="dialog" aria-modal="true"><div class="preview-dialog"><div class="preview-title"><strong>Prévia da marca d'água</strong><button type="button" class="preview-close" id="close-watermark-preview">✕</button></div><p class="small">Veja a imagem antes de ativá-la.</p><div id="preview-video" class="preview-video pos-inferior_direito"><img class="preview-logo" id="preview-logo" src="/marca-dagua-preview" alt="Marca d'água" draggable="false"></div><p class="small">Posição: <strong id="preview-position-label">Inferior direito</strong></p></div></div>
+<div id="watermark-preview" hidden class="preview-backdrop" role="dialog" aria-modal="true"><div class="preview-dialog"><div class="preview-title"><strong>Prévia da marca d'água</strong><button type="button" class="preview-close" id="close-watermark-preview">✕</button></div><p class="small">👆 Segure a marca e arraste. Você também pode tocar em qualquer ponto da prévia para posicioná-la.</p><div id="preview-video" class="preview-video pos-inferior_direito"><img class="preview-logo" id="preview-logo" src="/marca-dagua-preview" alt="Marca d'água" draggable="false"></div><p class="small">Posição: <strong id="preview-position-label">Inferior direito</strong></p></div></div>
 </main><script>
 
 
@@ -2384,13 +2384,30 @@ function atualizarPreviaMarca(){
  $("preview-position-label").textContent="Personalizada · "+Math.round(x)+"% horizontal / "+Math.round(y)+"% vertical";
 }
 (function configurarArrasteMarca(){
- const area=$("preview-video"),logo=$("preview-logo");let arrastando=false;
- function mover(ev){const r=area.getBoundingClientRect();const x=Math.max(0,Math.min(100,(ev.clientX-r.left)/r.width*100));const y=Math.max(0,Math.min(100,(ev.clientY-r.top)/r.height*100));$("watermark-x").value=x.toFixed(2);$("watermark-y").value=y.toFixed(2);atualizarPreviaMarca();}
- logo.addEventListener("pointerdown",ev=>{arrastando=true;logo.setPointerCapture(ev.pointerId);ev.preventDefault();});
- logo.addEventListener("pointermove",ev=>{if(arrastando)mover(ev);});
- logo.addEventListener("pointerup",()=>{arrastando=false;});logo.addEventListener("pointercancel",()=>{arrastando=false;});
- area.addEventListener("click",ev=>{if(ev.target!==logo)mover(ev);});
-})();
+  const area=$("preview-video");
+  let arrastando=false;
+  function mover(ev){
+    const r=area.getBoundingClientRect();
+    if(!r.width||!r.height)return;
+    const x=Math.max(0,Math.min(100,(ev.clientX-r.left)/r.width*100));
+    const y=Math.max(0,Math.min(100,(ev.clientY-r.top)/r.height*100));
+    $("watermark-x").value=x.toFixed(2);
+    $("watermark-y").value=y.toFixed(2);
+    atualizarPreviaMarca();
+  }
+  area.addEventListener("pointerdown",ev=>{
+    if(ev.button!==undefined&&ev.button!==0)return;
+    arrastando=true;
+    try{area.setPointerCapture(ev.pointerId)}catch(_){}
+    mover(ev);
+    ev.preventDefault();
+  });
+  area.addEventListener("pointermove",ev=>{if(arrastando){mover(ev);ev.preventDefault();}});
+  function parar(){arrastando=false;}
+  area.addEventListener("pointerup",parar);
+  area.addEventListener("pointercancel",parar);
+  area.addEventListener("lostpointercapture",parar);
+})();;
 $("preview-watermark").onclick=()=>{$("watermark-preview").hidden=false;atualizarPreviaMarca()};
 $("close-watermark-preview").onclick=()=>{$("watermark-preview").hidden=true};
 $("watermark-position").onchange=()=>{const p=$("watermark-position").value;const coords={superior_esquerdo:[15,15],superior_direito:[85,15],inferior_esquerdo:[15,85],inferior_direito:[85,85]};const v=coords[p]||coords.inferior_direito;$("watermark-x").value=v[0];$("watermark-y").value=v[1];atualizarPreviaMarca()};
