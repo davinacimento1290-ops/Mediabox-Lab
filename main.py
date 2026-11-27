@@ -518,12 +518,12 @@ def aplicar_marca_dagua(caminho, duracao=None, posicao="inferior_direito", pos_x
         "-filter_complex_threads", "1",
         "-filter_complex",
         "[1:v]scale=180:-1,format=rgba,colorchannelmixer=aa=0.75[wm];"
-        f"[0:v][wm]overlay={coordenadas}:shortest=1[outv]",
+        f"[0:v][wm]overlay={coordenadas}[outv]",
         "-map", "[outv]", "-map", "0:a?",
         "-c:v", "libx264", "-threads", "2", "-preset", "ultrafast",
         "-crf", "24", "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "128k",
-        "-movflags", "+faststart",
+        "-movflags", "+faststart", "-shortest",
         "-stats_period", "0.25", "-progress", "pipe:1", temporario
     ]
     processo = None
