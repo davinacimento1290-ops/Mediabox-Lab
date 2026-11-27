@@ -458,7 +458,7 @@ def obter_logo_marca():
         arquivo.write(dados)
     return logo
 
-def aplicar_marca_dagua(caminho, duracao=None, posicao="inferior_direito"):
+def aplicar_marca_dagua(caminho, duracao=None, posicao="inferior_direito", pos_x=88, pos_y=88):
     """Aplica a imagem Powered by BlueVision com uso moderado de CPU."""
     logo = obter_logo_marca()
     if not os.path.isfile(logo):
@@ -494,8 +494,12 @@ def aplicar_marca_dagua(caminho, duracao=None, posicao="inferior_direito"):
         except (subprocess.TimeoutExpired, OSError, ValueError, TypeError):
             log.warning("Não foi possível obter a duração do vídeo para o progresso.")
     atualizar(progresso=65, status="Aplicando marca d'água BlueVision...")
-    posicoes = {"superior_esquerdo":"24:24","superior_direito":"W-w-24:24","inferior_esquerdo":"24:H-h-24","inferior_direito":"W-w-24:H-h-24"}
-    coordenadas = posicoes.get(posicao, posicoes["inferior_direito"])
+    try:
+        pos_x = max(0.0, min(100.0, float(pos_x)))
+        pos_y = max(0.0, min(100.0, float(pos_y)))
+    except (TypeError, ValueError):
+        pos_x, pos_y = 88.0, 88.0
+    coordenadas = f"x='max(0,min(W-w,W*{pos_x/100:.5f}-w/2))':y='max(0,min(H-h,H*{pos_y/100:.5f}-h/2))"
     comando = [
         ffmpeg, "-y", "-hide_banner", "-loglevel", "error", "-nostats",
         "-threads", "2", "-i", caminho,
@@ -603,7 +607,7 @@ class YouTubeLogCapture:
         self.logger_base.error(str(mensagem))
 
 
-def baixar(url, formato, plataforma, usuario="desconhecido", marca_dagua=False, posicao_marca="inferior_direito"):
+def baixar(url, formato, plataforma, usuario="desconhecido", marca_dagua=False, posicao_marca="inferior_direito", marca_x=88, marca_y=88):
     logger_youtube = None
     try:
         url = validar_url(url)
@@ -612,7 +616,7 @@ def baixar(url, formato, plataforma, usuario="desconhecido", marca_dagua=False, 
         if real == "kwai":
             caminho = baixar_kwai(url)
             if marca_dagua:
-                caminho = aplicar_marca_dagua(caminho, posicao=posicao_marca)
+                caminho = aplicar_marca_dagua(caminho, posicao=posicao_marca, pos_x=marca_x, pos_y=marca_y)
             detalhe_marca = "com marca d'água BlueVision." if marca_dagua else "sem marca d'água."
             atualizar(
                 ativo=False,
@@ -664,7 +668,7 @@ def baixar(url, formato, plataforma, usuario="desconhecido", marca_dagua=False, 
         if not caminho_original:
             raise RuntimeError("O download terminou, mas o arquivo de vídeo não foi localizado.")
         duracao_video = info.get("duration") if isinstance(info, dict) else None
-        caminho = aplicar_marca_dagua(caminho_original, duracao=duracao_video, posicao=posicao_marca) if marca_dagua else caminho_original
+        caminho = aplicar_marca_dagua(caminho_original, duracao=duracao_video, posicao=posicao_marca, pos_x=marca_x, pos_y=marca_y) if marca_dagua else caminho_original
         detalhe_marca = "com marca d'água BlueVision." if marca_dagua else "sem marca d'água."
         atualizar(
             ativo=False,
@@ -842,7 +846,9 @@ def processar_fila_downloads(usuario):
                     item["plataforma"],
                     usuario,
                     item["marca_dagua"],
-                    item["posicao_marca"]
+                    item["posicao_marca"],
+                    item.get("marca_x", 88),
+                    item.get("marca_y", 88)
                 )
             except Exception as exc:
                 log.exception("Erro inesperado no item da fila BlueVision")
@@ -1306,7 +1312,7 @@ body[data-error-animation="minimal"] #error-intro .intro-effect:before,body[data
 @keyframes errorFade{from{opacity:0}to{opacity:1}}
 @media(max-width:420px){ #error-center{padding:10px}#error-center .error-panel{padding:17px;border-radius:20px}#error-center .error-facts{gap:7px}#error-center .error-fact{padding:9px}#error-center .error-actions{grid-template-columns:1fr}}
 
- .preview-backdrop[hidden]{display:none}.preview-backdrop{position:fixed;inset:0;z-index:9998;background:#02040bdc;display:grid;place-items:center;padding:18px}.preview-dialog{width:min(460px,100%);padding:18px;border:1px solid #344763;border-radius:20px;background:linear-gradient(145deg,#121d30,#0c1321);box-shadow:0 24px 80px #0009}.preview-title{display:flex;align-items:center;justify-content:space-between;gap:12px}.preview-close{width:42px;min-height:40px;padding:8px}.preview-video{position:relative;aspect-ratio:9/16;max-height:54vh;margin:14px auto;background:linear-gradient(145deg,#101a2d,#182a42 48%,#10101e);border:1px solid #40516e;border-radius:13px;overflow:hidden}.preview-video:after{content:"Prévia do vídeo";position:absolute;inset:0;display:grid;place-items:center;color:#ffffff38;font-size:14px;font-weight:700;letter-spacing:1px}.preview-logo{position:absolute;z-index:2;width:42%;height:auto;opacity:.86;filter:drop-shadow(0 1px 4px #000b)}.pos-superior_esquerdo .preview-logo{top:12px;left:12px}.pos-superior_direito .preview-logo{top:12px;right:12px}.pos-inferior_esquerdo .preview-logo{bottom:12px;left:12px}.pos-inferior_direito .preview-logo{bottom:12px;right:12px}.preview-mark{position:absolute;z-index:1;display:flex;flex-direction:column;line-height:1.02;text-align:left;filter:drop-shadow(0 1px 4px #000b);opacity:.86;font-size:10px}.preview-mark small{color:#fff;font-size:.62em;font-style:italic;font-weight:800}.preview-mark b{background:linear-gradient(100deg,#13cfff,#6975ff 55%,#c044ff);background-clip:text;-webkit-background-clip:text;color:transparent;font-size:1.12em;font-weight:950;letter-spacing:.4px}.pos-superior_esquerdo .preview-mark{top:12px;left:12px}.pos-superior_direito .preview-mark{top:12px;right:12px;text-align:right}.pos-inferior_esquerdo .preview-mark{bottom:12px;left:12px}.pos-inferior_direito .preview-mark{bottom:12px;right:12px;text-align:right}
+ .preview-backdrop[hidden]{display:none}.preview-backdrop{position:fixed;inset:0;z-index:9998;background:#02040bdc;display:grid;place-items:center;padding:18px}.preview-dialog{width:min(460px,100%);padding:18px;border:1px solid #344763;border-radius:20px;background:linear-gradient(145deg,#121d30,#0c1321);box-shadow:0 24px 80px #0009}.preview-title{display:flex;align-items:center;justify-content:space-between;gap:12px}.preview-close{width:42px;min-height:40px;padding:8px}.preview-video{position:relative;aspect-ratio:9/16;max-height:54vh;margin:14px auto;background:linear-gradient(145deg,#101a2d,#182a42 48%,#10101e);border:1px solid #40516e;border-radius:13px;overflow:hidden}.preview-video:after{content:"Prévia do vídeo";position:absolute;inset:0;display:grid;place-items:center;color:#ffffff38;font-size:14px;font-weight:700;letter-spacing:1px}.preview-logo{position:absolute;z-index:3;width:30%;height:auto;max-width:150px;opacity:.86;filter:drop-shadow(0 1px 4px #000b);left:88%;top:88%;transform:translate(-50%,-50%);touch-action:none;cursor:grab;user-select:none;-webkit-user-drag:none}.preview-logo:active{cursor:grabbing}.preview-video{touch-action:pan-y}.preview-video:after{pointer-events:none}.preview-mark{position:absolute;z-index:1;display:flex;flex-direction:column;line-height:1.02;text-align:left;filter:drop-shadow(0 1px 4px #000b);opacity:.86;font-size:10px}.preview-mark small{color:#fff;font-size:.62em;font-style:italic;font-weight:800}.preview-mark b{background:linear-gradient(100deg,#13cfff,#6975ff 55%,#c044ff);background-clip:text;-webkit-background-clip:text;color:transparent;font-size:1.12em;font-weight:950;letter-spacing:.4px}.pos-superior_esquerdo .preview-mark{top:12px;left:12px}.pos-superior_direito .preview-mark{top:12px;right:12px;text-align:right}.pos-inferior_esquerdo .preview-mark{bottom:12px;left:12px}.pos-inferior_direito .preview-mark{bottom:12px;right:12px;text-align:right}
 
 /* Editor secreto local: não persiste e não envia alterações */
 #mb-local-editor[hidden]{display:none}
@@ -1708,7 +1714,7 @@ button{min-height:48px;border-radius:13px;touch-action:manipulation}button:activ
 <div class="field"><label for="fmt">FORMATO DO ARQUIVO</label><select id="fmt"><option value="mp4">MP4 / padrão</option><option value="melhor">Melhor qualidade</option><option value="menor">Arquivo menor</option></select></div></div>
 <div class="grid"><div class="field"><label for="watermark">MARCA D'ÁGUA BLUEVISION</label><select id="watermark"><option value="nao" selected>Não — sem marca</option><option value="sim">Sim — Powered by BlueVision</option></select></div>
 <div class="field"><label for="watermark-position">POSIÇÃO DA MARCA</label><select id="watermark-position"><option value="superior_esquerdo">Superior esquerdo</option><option value="superior_direito">Superior direito</option><option value="inferior_esquerdo">Inferior esquerdo</option><option value="inferior_direito" selected>Inferior direito</option></select></div></div>
-<div class="field"><button type="button" class="secondary" id="preview-watermark">👁 Visualizar marca d'água</button></div>
+<div class="field"><button type="button" class="secondary" id="preview-watermark">👁 Visualizar e posicionar marca d'água</button><p class="small">Arraste a marca na prévia. A posição será aplicada ao vídeo final.</p><input type="hidden" id="watermark-x" value="88"><input type="hidden" id="watermark-y" value="88"></div>
 <button class="primary" id="btn">Iniciar download</button></form><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px"><div class="status" id="status" style="margin:0">Pronto para começar.</div><strong id="percent" style="font-size:20px;color:var(--cyan);font-variant-numeric:tabular-nums">0%</strong></div><div class="bar" role="progressbar" aria-label="Progresso do vídeo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="fill" class="fill"></div></div><div id="err" class="error"></div>
 <a id="download-link" class="primary" href="#" hidden
 style="display:block;text-align:center;text-decoration:none;padding:14px;border-radius:14px;margin-top:14px">
@@ -1797,7 +1803,7 @@ style="display:block;text-align:center;text-decoration:none;padding:14px;border-
     <div id="mb-editor-status" class="mb-editor-status" role="status">Aguardando edição.</div>
   </section>
 </div>
-<div id="watermark-preview" hidden class="preview-backdrop" role="dialog" aria-modal="true"><div class="preview-dialog"><div class="preview-title"><strong>Prévia da marca d'água</strong><button type="button" class="preview-close" id="close-watermark-preview">✕</button></div><p class="small">Veja a imagem antes de ativá-la.</p><div id="preview-video" class="preview-video pos-inferior_direito"><img class="preview-logo" src="/marca-dagua-preview" alt="Powered by BlueVision"></div><p class="small">Posição: <strong id="preview-position-label">Inferior direito</strong></p></div></div>
+<div id="watermark-preview" hidden class="preview-backdrop" role="dialog" aria-modal="true"><div class="preview-dialog"><div class="preview-title"><strong>Prévia da marca d'água</strong><button type="button" class="preview-close" id="close-watermark-preview">✕</button></div><p class="small">Veja a imagem antes de ativá-la.</p><div id="preview-video" class="preview-video pos-inferior_direito"><img class="preview-logo" id="preview-logo" src="/marca-dagua-preview" alt="Marca d'água" draggable="false"></div><p class="small">Posição: <strong id="preview-position-label">Inferior direito</strong></p></div></div>
 </main><script>
 
 
@@ -2371,10 +2377,23 @@ function mbDesativarModosVisuais(){
     $("mb-editor-status").textContent="Alteracoes temporarias restauradas. A pagina voltou ao visual original.";
   });
 })();
-function atualizarPreviaMarca(){const p=$("watermark-position").value;const nomes={superior_esquerdo:"Superior esquerdo",superior_direito:"Superior direito",inferior_esquerdo:"Inferior esquerdo",inferior_direito:"Inferior direito"};$("preview-video").className="preview-video pos-"+p;$("preview-position-label").textContent=nomes[p]||"Inferior direito"}
+function atualizarPreviaMarca(){
+ const x=Math.max(0,Math.min(100,Number($("watermark-x").value)||88));
+ const y=Math.max(0,Math.min(100,Number($("watermark-y").value)||88));
+ const logo=$("preview-logo");logo.style.left=x+"%";logo.style.top=y+"%";
+ $("preview-position-label").textContent="Personalizada · "+Math.round(x)+"% horizontal / "+Math.round(y)+"% vertical";
+}
+(function configurarArrasteMarca(){
+ const area=$("preview-video"),logo=$("preview-logo");let arrastando=false;
+ function mover(ev){const r=area.getBoundingClientRect();const x=Math.max(0,Math.min(100,(ev.clientX-r.left)/r.width*100));const y=Math.max(0,Math.min(100,(ev.clientY-r.top)/r.height*100));$("watermark-x").value=x.toFixed(2);$("watermark-y").value=y.toFixed(2);atualizarPreviaMarca();}
+ logo.addEventListener("pointerdown",ev=>{arrastando=true;logo.setPointerCapture(ev.pointerId);ev.preventDefault();});
+ logo.addEventListener("pointermove",ev=>{if(arrastando)mover(ev);});
+ logo.addEventListener("pointerup",()=>{arrastando=false;});logo.addEventListener("pointercancel",()=>{arrastando=false;});
+ area.addEventListener("click",ev=>{if(ev.target!==logo)mover(ev);});
+})();
 $("preview-watermark").onclick=()=>{$("watermark-preview").hidden=false;atualizarPreviaMarca()};
 $("close-watermark-preview").onclick=()=>{$("watermark-preview").hidden=true};
-$("watermark-position").onchange=atualizarPreviaMarca;
+$("watermark-position").onchange=()=>{const p=$("watermark-position").value;const coords={superior_esquerdo:[15,15],superior_direito:[85,15],inferior_esquerdo:[15,85],inferior_direito:[85,85]};const v=coords[p]||coords.inferior_direito;$("watermark-x").value=v[0];$("watermark-y").value=v[1];atualizarPreviaMarca()};
 $("watermark-preview").onclick=e=>{if(e.target===$("watermark-preview"))$("watermark-preview").hidden=true};
 const errosCentraisExibidos=new Set();const errosContagem=new Map();let diagnosticoAtual="",erroAnimacaoAtiva=false,erroAnimacaoTimer=null,audioRisada=null,somRisadaAtivo=true;
 let erroDiagnosticoSequencia=0,chaveErroAtual="",diagnosticosHistoricoMemoria=[];
@@ -2788,7 +2807,7 @@ window.addEventListener("unhandledrejection",evento=>{
     detalhes:erro&&erro.stack||"Falha assíncrona sem tratamento."
   });
 });
-$("form").onsubmit=async e=>{e.preventDefault();$("btn").disabled=true;$("btn").textContent="Processando vídeo...";$("download-link").hidden=true;$("download-link").removeAttribute("href");$("err").textContent="";$("percent").textContent="0%";$("fill").style.width="0%";$("status").textContent="Preparando seu download...";try{let r=await fetch("/start",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:$("url").value,plataforma:$("plat").value,formato:$("fmt").value,marca_dagua:$("watermark").value==="sim",posicao_marca:$("watermark-position").value})});let d=await r.json();if(!r.ok)throw Error(d.erro);if(timer)clearInterval(timer);await status();timer=setInterval(status,500)}catch(x){$("err").textContent=x.message;mostrarSusto(x.message);$("btn").disabled=false;$("btn").textContent="Iniciar download"}};
+$("form").onsubmit=async e=>{e.preventDefault();$("btn").disabled=true;$("btn").textContent="Processando vídeo...";$("download-link").hidden=true;$("download-link").removeAttribute("href");$("err").textContent="";$("percent").textContent="0%";$("fill").style.width="0%";$("status").textContent="Preparando seu download...";try{let r=await fetch("/start",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:$("url").value,plataforma:$("plat").value,formato:$("fmt").value,marca_dagua:$("watermark").value==="sim",posicao_marca:$("watermark-position").value,marca_x:Number($("watermark-x").value),marca_y:Number($("watermark-y").value)})});let d=await r.json();if(!r.ok)throw Error(d.erro);if(timer)clearInterval(timer);await status();timer=setInterval(status,500)}catch(x){$("err").textContent=x.message;mostrarSusto(x.message);$("btn").disabled=false;$("btn").textContent="Iniciar download"}};
 async function status(){try{
 let r=await fetch("/status?_="+Date.now(),{cache:"no-store"}),d=await r.json();
 let pct=Math.max(0,Math.min(100,Number(d.progresso)||0));
@@ -2989,7 +3008,9 @@ $("queue-add").onclick=async()=>{
         plataforma:$("plat").value,
         
         marca_dagua:$("queue-watermark").value==="sim",
-        posicao_marca:$("queue-watermark-position").value
+        posicao_marca:$("queue-watermark-position").value,
+        marca_x:Number($("watermark-x").value),
+        marca_y:Number($("watermark-y").value)
       })
     });
     const dados=await resposta.json();
@@ -3345,6 +3366,8 @@ def start():
         plataforma = d.get("plataforma", "auto")
         marca_dagua = d.get("marca_dagua", False) is True
         posicao_marca = d.get("posicao_marca", "inferior_direito")
+        marca_x = max(0.0, min(100.0, float(d.get("marca_x", 88))))
+        marca_y = max(0.0, min(100.0, float(d.get("marca_y", 88))))
         posicoes_validas = {"superior_esquerdo", "superior_direito", "inferior_esquerdo", "inferior_direito"}
         if posicao_marca not in posicoes_validas: return jsonify({"erro": "Posição da marca d'água inválida."}), 400
         if formato not in FORMATOS: return jsonify({"erro": "Formato inválido."}), 400
@@ -3356,7 +3379,7 @@ def start():
         registrar_evento(usuario, "download_iniciado", platform=plataforma, details=url[:250])
         threading.Thread(
             target=baixar,
-            args=(url, formato, plataforma, usuario, marca_dagua, posicao_marca),
+            args=(url, formato, plataforma, usuario, marca_dagua, posicao_marca, marca_x, marca_y),
             daemon=True
         ).start()
         return jsonify({"ok": True})
@@ -3390,6 +3413,11 @@ def fila_adicionar():
     plataforma = d.get("plataforma", "auto")
     marca_dagua = d.get("marca_dagua") is True
     posicao_marca = d.get("posicao_marca", "inferior_direito")
+    try:
+        marca_x = max(0.0, min(100.0, float(d.get("marca_x", 88))))
+        marca_y = max(0.0, min(100.0, float(d.get("marca_y", 88))))
+    except (TypeError, ValueError):
+        return jsonify({"erro": "Coordenadas da marca d'água inválidas."}), 400
     posicoes_validas = {
         "superior_esquerdo", "superior_direito",
         "inferior_esquerdo", "inferior_direito"
@@ -3413,6 +3441,8 @@ def fila_adicionar():
                 "plataforma": plataforma,
                 "marca_dagua": marca_dagua,
                 "posicao_marca": posicao_marca,
+                "marca_x": marca_x,
+                "marca_y": marca_y,
                 "status": "pending",
                 "progresso": 0,
                 "arquivo": "",
