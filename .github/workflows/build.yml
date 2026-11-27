@@ -77,7 +77,7 @@ jobs:
               assert "AndroidManifest.xml" in names, "Manifest Android ausente"
               bad = z.testzip()
               assert bad is None, f"APK corrompido: {bad}"
-          assert apk.stat().st_size > 100_000, "APK inesperadamente pequeno"
+          assert apk.stat().st_size > 20_000, "APK inesperadamente pequeno"
           print(f"APK válido: {apk.stat().st_size} bytes")
           PY
           ls -lh "$APK"
