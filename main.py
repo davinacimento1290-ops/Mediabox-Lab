@@ -21,7 +21,7 @@ import requests
 import yt_dlp
 import imageio_ffmpeg
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Flask, request, jsonify, render_template_string, session, redirect, url_for, send_from_directory
+from flask import Flask, request, jsonify, render_template_string, session, redirect, url_for, send_from_directory, Response, stream_with_context
 
 APP_NAME = "BLUEVISION"
 PORTA = int(os.environ.get("PORT", "5000"))
@@ -141,6 +141,9 @@ def captcha_novo():
 
 
 lock = threading.Lock()
+preview_stream_lock = threading.Lock()
+preview_streams = {}
+PREVIEW_STREAM_TTL = 15 * 60
 estado = {"ativo": False, "progresso": 0, "status": "Pronto para baixar",
           "arquivo": "", "erro": "", "plataforma": ""}
 
@@ -3418,13 +3421,81 @@ def preview_link():
                 media_url = candidatos[-1].get("url")
         if not media_url or urlparse(media_url).scheme not in {"http", "https"}:
             return jsonify({"erro": "A plataforma não forneceu um fluxo direto compatível com a prévia."}), 422
+        validar_url(media_url)
+        token_stream = secrets.token_urlsafe(32)
+        cabecalhos_origem = info.get("http_headers") or {}
+        cabecalhos_permitidos = {"User-Agent", "Referer", "Accept", "Accept-Language"}
+        cabecalhos_stream = {k: str(v) for k, v in cabecalhos_origem.items()
+                             if k in cabecalhos_permitidos}
+        cabecalhos_stream.setdefault("User-Agent", "Mozilla/5.0")
+        agora = time.time()
+        with preview_stream_lock:
+            expirados = [chave for chave, item in preview_streams.items()
+                         if agora - item["created"] > PREVIEW_STREAM_TTL]
+            for chave in expirados:
+                preview_streams.pop(chave, None)
+            if len(preview_streams) >= 30:
+                mais_antigo = min(preview_streams, key=lambda chave: preview_streams[chave]["created"])
+                preview_streams.pop(mais_antigo, None)
+            preview_streams[token_stream] = {
+                "url": media_url, "headers": cabecalhos_stream, "created": agora
+            }
         resposta = jsonify({"ok": True, "title": nome_seguro(info.get("title") or "Vídeo"),
-                            "duration": info.get("duration"), "media_url": media_url})
+                            "duration": info.get("duration"),
+                            "media_url": url_for("preview_stream", token=token_stream)})
         resposta.headers["Cache-Control"] = "no-store"
         return resposta
     except Exception as exc:
         log.warning("Falha ao resolver prévia de vídeo: %s", exc)
         return jsonify({"erro": "Não foi possível obter a prévia deste link: " + str(exc)[:350]}), 422
+
+
+@app.route("/preview/stream/<token>", methods=["GET", "HEAD"])
+def preview_stream(token):
+    """Proxy temporário com suporte a Range para reprodução no elemento video."""
+    agora = time.time()
+    with preview_stream_lock:
+        item = preview_streams.get(token)
+        if item and agora - item["created"] > PREVIEW_STREAM_TTL:
+            preview_streams.pop(token, None)
+            item = None
+    if not item:
+        return jsonify({"erro": "Prévia expirada. Carregue o link novamente."}), 404
+    cabecalhos = dict(item["headers"])
+    faixa = request.headers.get("Range")
+    if faixa:
+        cabecalhos["Range"] = faixa
+    try:
+        upstream = requests.request(
+            request.method, item["url"], headers=cabecalhos,
+            stream=request.method == "GET", allow_redirects=True,
+            timeout=(8, 25)
+        )
+        if upstream.status_code not in (200, 206, 416):
+            upstream.close()
+            return jsonify({"erro": "A plataforma recusou a reprodução da prévia."}), 502
+        saida_headers = {"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"}
+        for nome in ("Content-Type", "Content-Length", "Content-Range", "Accept-Ranges"):
+            valor = upstream.headers.get(nome)
+            if valor:
+                saida_headers[nome] = valor
+        if request.method == "HEAD":
+            status_code = upstream.status_code
+            upstream.close()
+            return Response(status=status_code, headers=saida_headers)
+        def gerar_chunks():
+            try:
+                for bloco in upstream.iter_content(chunk_size=256 * 1024):
+                    if bloco:
+                        yield bloco
+            finally:
+                upstream.close()
+        return Response(stream_with_context(gerar_chunks()),
+                        status=upstream.status_code, headers=saida_headers,
+                        direct_passthrough=True)
+    except requests.RequestException as exc:
+        log.warning("Falha no proxy de prévia: %s", exc)
+        return jsonify({"erro": "Não foi possível transmitir a prévia deste vídeo."}), 502
 
 
 @app.post("/start")
