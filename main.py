@@ -442,8 +442,15 @@ def baixar_kwai(url):
     return caminho_arquivo
 
 
-def obter_logo_marca():
-    """Decodifica e utiliza a arte Powered by MEDIABOX versionada no projeto."""
+def obter_logo_marca(tipo="dias_edits"):
+    """Retorna a arte original escolhida para a marca d'água."""
+    if tipo == "dias_edits":
+        logo = os.path.join(BASE_DIR, "static", "dias_edits_watermark.jpg")
+        if not os.path.isfile(logo) or os.path.getsize(logo) < 100:
+            raise FileNotFoundError("A imagem original Dias Edits não foi encontrada em static/dias_edits_watermark.jpg.")
+        return logo
+    if tipo != "mediabox":
+        raise ValueError("Tipo de marca d'água inválido.")
     origem = os.path.join(BASE_DIR, "powered_by_mediabox.png.b64")
     logo = os.path.join(BASE_DIR, "powered_by_mediabox.png")
     if not os.path.isfile(origem) or os.path.getsize(origem) == 0:
@@ -461,9 +468,10 @@ def obter_logo_marca():
         arquivo.write(dados)
     return logo
 
-def aplicar_marca_dagua(caminho, duracao=None, posicao="inferior_direito", pos_x=88, pos_y=88):
-    """Aplica a imagem Powered by MEDIABOX com uso moderado de CPU."""
-    logo = obter_logo_marca()
+def aplicar_marca_dagua(caminho, duracao=None, posicao="inferior_direito", pos_x=88, pos_y=88, marca_tipo="dias_edits"):
+    """Aplica a marca selecionada mantendo a posição personalizada."""
+    logo = obter_logo_marca(marca_tipo)
+    nome_marca = "Dias Edits" if marca_tipo == "dias_edits" else "MEDIABOX"
     if not os.path.isfile(logo):
         raise FileNotFoundError("A logo oficial MEDIABOX não foi encontrada no servidor.")
     caminho = os.path.abspath(caminho)
@@ -476,7 +484,7 @@ def aplicar_marca_dagua(caminho, duracao=None, posicao="inferior_direito", pos_x
     for auxiliar in (temporario, log_ffmpeg):
         if os.path.exists(auxiliar):
             os.remove(auxiliar)
-    atualizar(progresso=80, status="Preparando marca d'água MEDIABOX...")
+    atualizar(progresso=80, status=f"Preparando marca d'água {nome_marca}...")
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
     # Descobre a duração lendo apenas os metadados; isso permite calcular
     # a porcentagem real também em plataformas que não informam duration.
@@ -496,7 +504,7 @@ def aplicar_marca_dagua(caminho, duracao=None, posicao="inferior_direito", pos_x
                 duracao = int(hh) * 3600 + int(mm) * 60 + float(ss)
         except (subprocess.TimeoutExpired, OSError, ValueError, TypeError):
             log.warning("Não foi possível obter a duração do vídeo para o progresso.")
-    atualizar(progresso=65, status="Aplicando marca d'água MEDIABOX...")
+    atualizar(progresso=65, status=f"Aplicando marca d'água {nome_marca}...")
     try:
         pos_x = max(0.0, min(100.0, float(pos_x)))
         pos_y = max(0.0, min(100.0, float(pos_y)))
@@ -545,11 +553,11 @@ def aplicar_marca_dagua(caminho, duracao=None, posicao="inferior_direito", pos_x
                         if duracao and float(duracao) > 0:
                             pct = 65 + int(min(1.0, segundos / float(duracao)) * 34)
                             pct = min(99, max(65, pct))
-                            atualizar(progresso=pct, status="Aplicando marca d'água MEDIABOX...")
+                            atualizar(progresso=pct, status=f"Aplicando marca d'água {nome_marca}...")
                         else:
-                            atualizar(status="Aplicando marca d'água MEDIABOX...")
+                            atualizar(status=f"Aplicando marca d'água {nome_marca}...")
                     except (ValueError, IndexError, TypeError):
-                        atualizar(status="Aplicando marca d'água MEDIABOX...")
+                        atualizar(status=f"Aplicando marca d'água {nome_marca}...")
             leitor = threading.Thread(target=acompanhar_ffmpeg, daemon=True)
             leitor.start()
             try:
@@ -610,7 +618,7 @@ class YouTubeLogCapture:
         self.logger_base.error(str(mensagem))
 
 
-def baixar(url, formato, plataforma, usuario="desconhecido", marca_dagua=False, posicao_marca="inferior_direito", marca_x=88, marca_y=88):
+def baixar(url, formato, plataforma, usuario="desconhecido", marca_dagua=False, posicao_marca="inferior_direito", marca_x=88, marca_y=88, marca_tipo="dias_edits")
     logger_youtube = None
     try:
         url = validar_url(url)
@@ -619,8 +627,8 @@ def baixar(url, formato, plataforma, usuario="desconhecido", marca_dagua=False, 
         if real == "kwai":
             caminho = baixar_kwai(url)
             if marca_dagua:
-                caminho = aplicar_marca_dagua(caminho, posicao=posicao_marca, pos_x=marca_x, pos_y=marca_y)
-            detalhe_marca = "com marca d'água MEDIABOX." if marca_dagua else "sem marca d'água."
+                caminho = aplicar_marca_dagua(caminho, posicao=posicao_marca, pos_x=marca_x, pos_y=marca_y, marca_tipo=marca_tipo)
+            detalhe_marca = ("com marca d'água Dias Edits." if marca_tipo == "dias_edits" else "com marca d'água MEDIABOX.") if marca_dagua else "sem marca d'água."
             atualizar(
                 ativo=False,
                 progresso=100,
@@ -660,6 +668,10 @@ def baixar(url, formato, plataforma, usuario="desconhecido", marca_dagua=False, 
         atualizar(status=f"Conectando ao {real}...")
         with yt_dlp.YoutubeDL(opcoes) as ydl:
             info = ydl.extract_info(url, download=True)
+            if info and info.get("entries"):
+                info = next((item for item in info["entries"] if item), None)
+            if not isinstance(info, dict):
+                raise RuntimeError("A plataforma não retornou metadados de um vídeo para download.")
             candidatos = [info.get("filepath"), info.get("_filename")]
             for item in info.get("requested_downloads") or []:
                 candidatos.insert(0, item.get("filepath"))
@@ -671,8 +683,8 @@ def baixar(url, formato, plataforma, usuario="desconhecido", marca_dagua=False, 
         if not caminho_original:
             raise RuntimeError("O download terminou, mas o arquivo de vídeo não foi localizado.")
         duracao_video = info.get("duration") if isinstance(info, dict) else None
-        caminho = aplicar_marca_dagua(caminho_original, duracao=duracao_video, posicao=posicao_marca, pos_x=marca_x, pos_y=marca_y) if marca_dagua else caminho_original
-        detalhe_marca = "com marca d'água MEDIABOX." if marca_dagua else "sem marca d'água."
+        caminho = aplicar_marca_dagua(caminho_original, duracao=duracao_video, posicao=posicao_marca, pos_x=marca_x, pos_y=marca_y, marca_tipo=marca_tipo) if marca_dagua else caminho_original
+        detalhe_marca = ("com marca d'água Dias Edits." if marca_tipo == "dias_edits" else "com marca d'água MEDIABOX.") if marca_dagua else "sem marca d'água."
         atualizar(
             ativo=False,
             progresso=100,
@@ -1715,7 +1727,7 @@ button{min-height:48px;border-radius:13px;touch-action:manipulation}button:activ
 <div class="field"><label for="url">LINK DO VÍDEO</label><input id="url" type="url" required placeholder="Cole aqui o link do YouTube, Instagram, Kwai ou TikTok"><button type="button" class="secondary" id="load-video-preview" style="margin-top:9px">▶ Carregar prévia real do link</button><p class="small" id="link-preview-status" role="status">Cole o link e carregue a prévia antes de posicionar a marca.</p></div>
 <div class="grid"><div class="field"><label for="plat">PLATAFORMA</label><select id="plat"><option value="auto">Detectar automaticamente</option><option value="youtube">YouTube</option><option value="instagram">Instagram</option><option value="kwai">Kwai</option><option value="tiktok">TikTok</option><option value="outros">Outros compatíveis</option></select></div>
 <div class="field"><label for="fmt">FORMATO DO ARQUIVO</label><select id="fmt"><option value="mp4">MP4 / padrão</option><option value="melhor">Melhor qualidade</option><option value="menor">Arquivo menor</option></select></div></div>
-<div class="grid"><div class="field"><label for="watermark">MARCA D'ÁGUA MEDIABOX</label><select id="watermark"><option value="sim" selected>Sim — Powered by MEDIABOX</option><option value="nao">Não — sem marca</option></select></div>
+<div class="grid"><div class="field"><label for="watermark">MARCA D'ÁGUA</label><select id="watermark"><option value="dias_edits" selected>Sim — Dias Edits (original)</option><option value="mediabox">Sim — Powered by MEDIABOX</option><option value="nao">Não — sem marca</option></select></div>
 <div class="field"><label for="watermark-position">POSIÇÃO DA MARCA</label><select id="watermark-position"><option value="superior_esquerdo">Superior esquerdo</option><option value="superior_direito">Superior direito</option><option value="inferior_esquerdo">Inferior esquerdo</option><option value="inferior_direito" selected>Inferior direito</option></select></div></div>
 <div class="field"><button type="button" class="secondary" id="preview-watermark">👁 Visualizar e posicionar marca d'água</button><p class="small">Arraste a marca na prévia. A posição será aplicada ao vídeo final.</p><input type="hidden" id="watermark-x" value="88"><input type="hidden" id="watermark-y" value="88"></div>
 <button class="primary" id="btn">Iniciar download</button></form><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px"><div class="status" id="status" style="margin:0">Pronto para começar.</div><strong id="percent" style="font-size:20px;color:var(--cyan);font-variant-numeric:tabular-nums">0%</strong></div><div class="bar" role="progressbar" aria-label="Progresso do vídeo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="fill" class="fill"></div></div><div id="err" class="error"></div>
@@ -1751,7 +1763,7 @@ style="display:block;text-align:center;text-decoration:none;padding:14px;border-
 <div class="section-head"><div class="section-icon">☷</div><div><h2>BLUEVISION DOWNLOAD MANAGER</h2><p>Adicione vários links e baixe um vídeo por vez.</p></div></div>
 <div class="field"><label for="queue-input">LINKS PARA A FILA · UM POR LINHA</label><textarea id="queue-input" class="queue-input" rows="4" placeholder="https://www.youtube.com/watch?v=...\nhttps://www.instagram.com/reel/...\nhttps://www.kwai.com/...\nhttps://www.tiktok.com/@perfil/video/..."></textarea><p class="queue-help">Até 20 links por envio. Plataforma e qualidade vêm do formulário acima; a marca-d’água é escolhida separadamente para cada nova adição.</p></div>
 <div class="grid">
-  <div class="field"><label for="queue-watermark">MARCA-D’ÁGUA NESTA ADIÇÃO</label><select id="queue-watermark"><option value="sim" selected>Sim — Powered by MEDIABOX</option><option value="nao">Não — manter original</option></select></div>
+  <div class="field"><label for="queue-watermark">MARCA-D’ÁGUA NESTA ADIÇÃO</label><select id="queue-watermark"><option value="sim" selected>Sim — Dias Edits (original)</option><option value="nao">Não — manter original</option></select></div>
   <div class="field"><label for="queue-watermark-position">POSIÇÃO DA MARCA</label><select id="queue-watermark-position"><option value="superior_esquerdo">Superior esquerdo</option><option value="superior_direito">Superior direito</option><option value="inferior_esquerdo">Inferior esquerdo</option><option value="inferior_direito" selected>Inferior direito</option></select></div>
 </div>
 <div class="queue-actions"><button type="button" class="secondary" id="queue-add">＋ Adicionar links</button><button type="button" class="primary" id="queue-start">▶ Iniciar fila</button><button type="button" class="secondary" id="queue-pause">⏸ Pausar fila</button><button type="button" class="secondary" id="queue-live-toggle" aria-pressed="true">⏱ Ao vivo: ATIVADO</button><button type="button" class="secondary" id="queue-clear">Limpar finalizados</button></div>
@@ -1807,7 +1819,7 @@ style="display:block;text-align:center;text-decoration:none;padding:14px;border-
     <div id="mb-editor-status" class="mb-editor-status" role="status">Aguardando edição.</div>
   </section>
 </div>
-<div id="watermark-preview" hidden class="preview-backdrop" role="dialog" aria-modal="true"><div class="preview-dialog"><div class="preview-title"><strong>Prévia real + marca d'água</strong><button type="button" class="preview-close" id="close-watermark-preview">✕</button></div><p class="small">Assista ao vídeo e arraste a marca para qualquer ponto. A posição será usada no arquivo final.</p><div id="preview-video" class="preview-video pos-inferior_direito"><video id="preview-source" controls playsinline preload="metadata"></video><img class="preview-logo" id="preview-logo" src="/marca-dagua-preview" alt="Marca d'água" draggable="false"></div><p class="small" id="preview-video-title">Nenhum vídeo carregado.</p><p class="small">Posição: <strong id="preview-position-label">Inferior direito</strong></p></div></div>
+<div id="watermark-preview" hidden class="preview-backdrop" role="dialog" aria-modal="true"><div class="preview-dialog"><div class="preview-title"><strong>Prévia real + marca d'água</strong><button type="button" class="preview-close" id="close-watermark-preview">✕</button></div><p class="small">Assista ao vídeo e arraste a marca para qualquer ponto. A posição será usada no arquivo final.</p><div id="preview-video" class="preview-video pos-inferior_direito"><video id="preview-source" controls playsinline preload="metadata"></video><img class="preview-logo" id="preview-logo" src="/marca-dagua-preview?tipo=dias_edits" alt="Marca d'água Dias Edits" draggable="false"></div><p class="small" id="preview-video-title">Nenhum vídeo carregado.</p><p class="small">Posição: <strong id="preview-position-label">Inferior direito</strong></p></div></div>
 </main><script>
 
 
@@ -2384,7 +2396,14 @@ function mbDesativarModosVisuais(){
 function atualizarPreviaMarca(){
  const x=Math.max(0,Math.min(100,Number($("watermark-x").value)||88));
  const y=Math.max(0,Math.min(100,Number($("watermark-y").value)||88));
- const logo=$("preview-logo");logo.style.left=x+"%";logo.style.top=y+"%";
+ const logo=$("preview-logo");
+ const tipo=$("watermark").value;
+ logo.hidden=tipo==="nao";
+ if(tipo!=="nao"){
+   const src="/marca-dagua-preview?tipo="+encodeURIComponent(tipo);
+   if(!logo.src.endsWith(src))logo.src=src;
+ }
+ logo.style.left=x+"%";logo.style.top=y+"%";
  $("preview-position-label").textContent="Personalizada · "+Math.round(x)+"% horizontal / "+Math.round(y)+"% vertical";
 }
 (function configurarArrasteMarca(){
@@ -2434,6 +2453,7 @@ $("load-video-preview").addEventListener("click",carregarPreviaDoLink);
 $("url").addEventListener("change",()=>{if($("url").value.trim()!==previewLinkCarregado)$("link-preview-status").textContent="Link alterado. Carregue novamente a prévia."});
 $("preview-watermark").onclick=()=>{if(!$("preview-source").getAttribute("src")||previewLinkCarregado!==$("url").value.trim()){$("link-preview-status").textContent="Carregue novamente a prévia do link atual antes de abrir o posicionador.";return}$("watermark-preview").hidden=false;atualizarPreviaMarca()};
 $("close-watermark-preview").onclick=()=>{$("watermark-preview").hidden=true;$("preview-source").pause()};
+$("watermark").addEventListener("change",()=>atualizarPreviaMarca());
 $("watermark-position").onchange=()=>{const p=$("watermark-position").value;const coords={superior_esquerdo:[15,15],superior_direito:[85,15],inferior_esquerdo:[15,85],inferior_direito:[85,85]};const v=coords[p]||coords.inferior_direito;$("watermark-x").value=v[0];$("watermark-y").value=v[1];atualizarPreviaMarca()};
 $("watermark-preview").onclick=e=>{if(e.target===$("watermark-preview"))$("watermark-preview").hidden=true};
 const errosCentraisExibidos=new Set();const errosContagem=new Map();let diagnosticoAtual="",erroAnimacaoAtiva=false,erroAnimacaoTimer=null,audioRisada=null,somRisadaAtivo=true;
@@ -2848,7 +2868,7 @@ window.addEventListener("unhandledrejection",evento=>{
     detalhes:erro&&erro.stack||"Falha assíncrona sem tratamento."
   });
 });
-$("form").onsubmit=async e=>{e.preventDefault();$("btn").disabled=true;$("btn").textContent="Processando vídeo...";$("download-link").hidden=true;$("download-link").removeAttribute("href");const previaInicial=$("download-preview");previaInicial.pause();previaInicial.hidden=true;previaInicial.style.display="none";previaInicial.removeAttribute("src");previaInicial.load();$("err").textContent="";$("percent").textContent="0%";$("fill").style.width="0%";$("status").textContent="Preparando seu download...";try{let r=await fetch("/start",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:$("url").value,plataforma:$("plat").value,formato:$("fmt").value,marca_dagua:$("watermark").value==="sim",posicao_marca:$("watermark-position").value,marca_x:Number($("watermark-x").value),marca_y:Number($("watermark-y").value)})});let d=await r.json();if(!r.ok)throw Error(d.erro);if(timer)clearInterval(timer);await status();timer=setInterval(status,500)}catch(x){$("err").textContent=x.message;mostrarSusto(x.message);$("btn").disabled=false;$("btn").textContent="Iniciar download"}};
+$("form").onsubmit=async e=>{e.preventDefault();$("btn").disabled=true;$("btn").textContent="Processando vídeo...";$("download-link").hidden=true;$("download-link").removeAttribute("href");const previaInicial=$("download-preview");previaInicial.pause();previaInicial.hidden=true;previaInicial.style.display="none";previaInicial.removeAttribute("src");previaInicial.load();$("err").textContent="";$("percent").textContent="0%";$("fill").style.width="0%";$("status").textContent="Preparando seu download...";try{let r=await fetch("/start",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:$("url").value,plataforma:$("plat").value,formato:$("fmt").value,marca_dagua:$("watermark").value!=="nao",marca_tipo:$("watermark").value,posicao_marca:$("watermark-position").value,marca_x:Number($("watermark-x").value),marca_y:Number($("watermark-y").value)})});let d=await r.json();if(!r.ok)throw Error(d.erro);if(timer)clearInterval(timer);await status();timer=setInterval(status,500)}catch(x){$("err").textContent=x.message;mostrarSusto(x.message);$("btn").disabled=false;$("btn").textContent="Iniciar download"}};
 async function status(){try{
 let r=await fetch("/status?_="+Date.now(),{cache:"no-store"}),d=await r.json();
 let pct=Math.max(0,Math.min(100,Number(d.progresso)||0));
@@ -3170,8 +3190,13 @@ def bluevision_brand_mark():
 
 @app.get("/marca-dagua-preview")
 def marca_dagua_preview():
-    logo = obter_logo_marca()
-    return send_from_directory(BASE_DIR, os.path.basename(logo), mimetype="image/png", max_age=3600)
+    tipo = request.args.get("tipo", "dias_edits")
+    try:
+        logo = obter_logo_marca(tipo)
+    except (ValueError, FileNotFoundError) as exc:
+        return jsonify({"erro": str(exc)}), 404
+    mimetype = "image/jpeg" if logo.lower().endswith((".jpg", ".jpeg")) else "image/png"
+    return send_from_directory(os.path.dirname(logo), os.path.basename(logo), mimetype=mimetype, max_age=3600)
 
 
 @app.get("/")
@@ -3417,6 +3442,53 @@ def preview_link():
     dados = request.get_json(silent=True) or {}
     try:
         url = validar_url(dados.get("url", ""))
+        if detectar(url) == "kwai":
+            sessao_kwai = requests.Session()
+            sessao_kwai.headers.update(HEADERS_KWAI)
+            resposta_kwai = sessao_kwai.get(url, allow_redirects=True, timeout=(8, 18))
+            resposta_kwai.raise_for_status()
+            url_kwai = validar_url(resposta_kwai.url)
+            media_url = extrair_kwai(resposta_kwai.text, url_kwai)
+            titulo_kwai = extrair_titulo_kwai(resposta_kwai.text, url_kwai)
+            duracao_kwai = None
+            if not media_url:
+                opcoes_kwai = {
+                    "quiet": True, "no_warnings": True, "noplaylist": True,
+                    "skip_download": True, "format": "best[ext=mp4]/best",
+                    "http_headers": HEADERS_KWAI, "socket_timeout": 18
+                }
+                with yt_dlp.YoutubeDL(opcoes_kwai) as ydl:
+                    info_kwai = ydl.extract_info(url_kwai, download=False)
+                if info_kwai and info_kwai.get("entries"):
+                    info_kwai = next((item for item in info_kwai["entries"] if item), None)
+                if not info_kwai:
+                    raise RuntimeError("O Kwai não retornou metadados públicos para a prévia.")
+                media_url = info_kwai.get("url")
+                duracao_kwai = info_kwai.get("duration")
+                titulo_kwai = nome_seguro(info_kwai.get("title") or titulo_kwai)
+                if not media_url:
+                    formatos_kwai = [x for x in info_kwai.get("formats", [])
+                                     if x.get("url") and x.get("vcodec") != "none"]
+                    mp4_kwai = [x for x in formatos_kwai if x.get("ext") == "mp4"]
+                    candidatos_kwai = mp4_kwai or formatos_kwai
+                    media_url = candidatos_kwai[-1]["url"] if candidatos_kwai else None
+            if not media_url:
+                raise RuntimeError("O Kwai não disponibilizou um fluxo público compatível com a prévia.")
+            media_url = validar_url(media_url)
+            token_stream = secrets.token_urlsafe(32)
+            cabecalhos_stream = {"User-Agent": HEADERS_KWAI["User-Agent"],
+                                 "Referer": url_kwai,
+                                 "Accept-Language": HEADERS_KWAI["Accept-Language"]}
+            with preview_stream_lock:
+                agora = time.time()
+                preview_streams[token_stream] = {
+                    "url": media_url, "headers": cabecalhos_stream, "created": agora
+                }
+            resposta = jsonify({"ok": True, "title": titulo_kwai,
+                                "duration": duracao_kwai,
+                                "media_url": url_for("preview_stream", token=token_stream)})
+            resposta.headers["Cache-Control"] = "no-store"
+            return resposta
         opcoes = {
             "quiet": True, "no_warnings": True, "noplaylist": True,
             "skip_download": True,
@@ -3530,6 +3602,9 @@ def start():
         formato = d.get("formato", "mp4")
         plataforma = d.get("plataforma", "auto")
         marca_dagua = d.get("marca_dagua", False) is True
+        marca_tipo = d.get("marca_tipo", "dias_edits")
+        if marca_tipo not in {"dias_edits", "mediabox"}:
+            return jsonify({"erro": "Tipo de marca d'água inválido."}), 400
         posicao_marca = d.get("posicao_marca", "inferior_direito")
         marca_x = max(0.0, min(100.0, float(d.get("marca_x", 88))))
         marca_y = max(0.0, min(100.0, float(d.get("marca_y", 88))))
@@ -3544,7 +3619,7 @@ def start():
         registrar_evento(usuario, "download_iniciado", platform=plataforma, details=url[:250])
         threading.Thread(
             target=baixar,
-            args=(url, formato, plataforma, usuario, marca_dagua, posicao_marca, marca_x, marca_y),
+            args=(url, formato, plataforma, usuario, marca_dagua, posicao_marca, marca_x, marca_y, marca_tipo),
             daemon=True
         ).start()
         return jsonify({"ok": True})
