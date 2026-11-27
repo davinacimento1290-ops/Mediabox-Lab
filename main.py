@@ -1312,7 +1312,7 @@ body[data-error-animation="minimal"] #error-intro .intro-effect:before,body[data
 @keyframes errorFade{from{opacity:0}to{opacity:1}}
 @media(max-width:420px){ #error-center{padding:10px}#error-center .error-panel{padding:17px;border-radius:20px}#error-center .error-facts{gap:7px}#error-center .error-fact{padding:9px}#error-center .error-actions{grid-template-columns:1fr}}
 
- .preview-backdrop[hidden]{display:none}.preview-backdrop{position:fixed;inset:0;z-index:9998;background:#02040bdc;display:grid;place-items:center;padding:18px}.preview-dialog{width:min(460px,100%);padding:18px;border:1px solid #344763;border-radius:20px;background:linear-gradient(145deg,#121d30,#0c1321);box-shadow:0 24px 80px #0009}.preview-title{display:flex;align-items:center;justify-content:space-between;gap:12px}.preview-close{width:42px;min-height:40px;padding:8px}.preview-video{position:relative;aspect-ratio:9/16;max-height:54vh;margin:14px auto;background:linear-gradient(145deg,#101a2d,#182a42 48%,#10101e);border:1px solid #40516e;border-radius:13px;overflow:hidden}.preview-video:after{content:"Prévia do vídeo";position:absolute;inset:0;display:grid;place-items:center;color:#ffffff38;font-size:14px;font-weight:700;letter-spacing:1px}.preview-logo{position:absolute;z-index:3;width:30%;height:auto;max-width:150px;opacity:.86;filter:drop-shadow(0 1px 4px #000b);left:88%;top:88%;transform:translate(-50%,-50%);touch-action:none;cursor:grab;user-select:none;-webkit-user-drag:none}.preview-logo:active{cursor:grabbing}.preview-video{touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none}.preview-video:after{pointer-events:none}.preview-mark{position:absolute;z-index:1;display:flex;flex-direction:column;line-height:1.02;text-align:left;filter:drop-shadow(0 1px 4px #000b);opacity:.86;font-size:10px}.preview-mark small{color:#fff;font-size:.62em;font-style:italic;font-weight:800}.preview-mark b{background:linear-gradient(100deg,#13cfff,#6975ff 55%,#c044ff);background-clip:text;-webkit-background-clip:text;color:transparent;font-size:1.12em;font-weight:950;letter-spacing:.4px}.pos-superior_esquerdo .preview-mark{top:12px;left:12px}.pos-superior_direito .preview-mark{top:12px;right:12px;text-align:right}.pos-inferior_esquerdo .preview-mark{bottom:12px;left:12px}.pos-inferior_direito .preview-mark{bottom:12px;right:12px;text-align:right}
+ .preview-backdrop[hidden]{display:none}.preview-backdrop{position:fixed;inset:0;z-index:9998;background:#02040bdc;display:grid;place-items:center;padding:18px}.preview-dialog{width:min(460px,100%);padding:18px;border:1px solid #344763;border-radius:20px;background:linear-gradient(145deg,#121d30,#0c1321);box-shadow:0 24px 80px #0009}.preview-title{display:flex;align-items:center;justify-content:space-between;gap:12px}.preview-close{width:42px;min-height:40px;padding:8px}.preview-video{position:relative;aspect-ratio:9/16;width:min(100%,320px);max-height:54vh;margin:14px auto;background:#05070c;border:1px solid #40516e;border-radius:13px;overflow:hidden}.preview-video video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}.preview-logo{position:absolute;z-index:3;width:30%;height:auto;max-width:150px;opacity:.86;filter:drop-shadow(0 1px 4px #000b);left:88%;top:88%;transform:translate(-50%,-50%);touch-action:none;cursor:grab;user-select:none;-webkit-user-drag:none}.preview-logo:active{cursor:grabbing}.preview-video{touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none}.preview-video:after{pointer-events:none}.preview-mark{position:absolute;z-index:1;display:flex;flex-direction:column;line-height:1.02;text-align:left;filter:drop-shadow(0 1px 4px #000b);opacity:.86;font-size:10px}.preview-mark small{color:#fff;font-size:.62em;font-style:italic;font-weight:800}.preview-mark b{background:linear-gradient(100deg,#13cfff,#6975ff 55%,#c044ff);background-clip:text;-webkit-background-clip:text;color:transparent;font-size:1.12em;font-weight:950;letter-spacing:.4px}.pos-superior_esquerdo .preview-mark{top:12px;left:12px}.pos-superior_direito .preview-mark{top:12px;right:12px;text-align:right}.pos-inferior_esquerdo .preview-mark{bottom:12px;left:12px}.pos-inferior_direito .preview-mark{bottom:12px;right:12px;text-align:right}
 
 /* Editor secreto local: não persiste e não envia alterações */
 #mb-local-editor[hidden]{display:none}
@@ -1709,7 +1709,7 @@ button{min-height:48px;border-radius:13px;touch-action:manipulation}button:activ
 <a href="/matematica" style="display:block;margin:15px 0;padding:17px;border:1px solid #70f0e6;border-radius:17px;background:linear-gradient(110deg,#142d42,#241b40);color:#70f0e6;text-decoration:none;font-weight:800;text-align:center">🧮 ABRIR MATEMÁTICA → Calculadora, tabuada e mais</a>
 <header class="hero"><div class="eyebrow">Seu conteúdo, em um só lugar</div><h1>Blue<span>Vision</span></h1><p>Uma central simples para baixar vídeos e encontrar conteúdos.</p><div class="hero-tags"><span>Downloads</span><span>Pesquisa</span><span>Ferramentas de vídeo</span></div></header>
 <section class="card"><div class="section-head"><div class="section-icon">↓</div><div><h2>Baixar vídeo</h2><p>Cole o link e escolha como deseja salvar.</p></div></div><form id="form">
-<div class="field"><label for="url">LINK DO VÍDEO</label><input id="url" type="url" required placeholder="Cole aqui o link do YouTube, Instagram, Kwai ou TikTok"></div>
+<div class="field"><label for="url">LINK DO VÍDEO</label><input id="url" type="url" required placeholder="Cole aqui o link do YouTube, Instagram, Kwai ou TikTok"><button type="button" class="secondary" id="load-video-preview" style="margin-top:9px">▶ Carregar prévia real do link</button><p class="small" id="link-preview-status" role="status">Cole o link e carregue a prévia antes de posicionar a marca.</p></div>
 <div class="grid"><div class="field"><label for="plat">PLATAFORMA</label><select id="plat"><option value="auto">Detectar automaticamente</option><option value="youtube">YouTube</option><option value="instagram">Instagram</option><option value="kwai">Kwai</option><option value="tiktok">TikTok</option><option value="outros">Outros compatíveis</option></select></div>
 <div class="field"><label for="fmt">FORMATO DO ARQUIVO</label><select id="fmt"><option value="mp4">MP4 / padrão</option><option value="melhor">Melhor qualidade</option><option value="menor">Arquivo menor</option></select></div></div>
 <div class="grid"><div class="field"><label for="watermark">MARCA D'ÁGUA BLUEVISION</label><select id="watermark"><option value="nao" selected>Não — sem marca</option><option value="sim">Sim — Powered by BlueVision</option></select></div>
@@ -1803,7 +1803,7 @@ style="display:block;text-align:center;text-decoration:none;padding:14px;border-
     <div id="mb-editor-status" class="mb-editor-status" role="status">Aguardando edição.</div>
   </section>
 </div>
-<div id="watermark-preview" hidden class="preview-backdrop" role="dialog" aria-modal="true"><div class="preview-dialog"><div class="preview-title"><strong>Prévia da marca d'água</strong><button type="button" class="preview-close" id="close-watermark-preview">✕</button></div><p class="small">👆 Segure a marca e arraste. Você também pode tocar em qualquer ponto da prévia para posicioná-la.</p><div id="preview-video" class="preview-video pos-inferior_direito"><img class="preview-logo" id="preview-logo" src="/marca-dagua-preview" alt="Marca d'água" draggable="false"></div><p class="small">Posição: <strong id="preview-position-label">Inferior direito</strong></p></div></div>
+<div id="watermark-preview" hidden class="preview-backdrop" role="dialog" aria-modal="true"><div class="preview-dialog"><div class="preview-title"><strong>Prévia real + marca d'água</strong><button type="button" class="preview-close" id="close-watermark-preview">✕</button></div><p class="small">Assista ao vídeo e arraste a marca para qualquer ponto. A posição será usada no arquivo final.</p><div id="preview-video" class="preview-video pos-inferior_direito"><video id="preview-source" controls playsinline preload="metadata"></video><img class="preview-logo" id="preview-logo" src="/marca-dagua-preview" alt="Marca d'água" draggable="false"></div><p class="small" id="preview-video-title">Nenhum vídeo carregado.</p><p class="small">Posição: <strong id="preview-position-label">Inferior direito</strong></p></div></div>
 </main><script>
 
 
@@ -2408,7 +2408,26 @@ function atualizarPreviaMarca(){
   area.addEventListener("pointercancel",parar);
   area.addEventListener("lostpointercapture",parar);
 })();;
-$("preview-watermark").onclick=()=>{$("watermark-preview").hidden=false;atualizarPreviaMarca()};
+let previewLinkCarregado="";
+async function carregarPreviaDoLink(){
+ const url=$("url").value.trim();
+ if(!url){$("link-preview-status").textContent="Cole primeiro o link do vídeo.";return}
+ const botao=$("load-video-preview");botao.disabled=true;botao.textContent="Buscando vídeo...";
+ $("link-preview-status").textContent="O Python está analisando o link com yt-dlp...";
+ try{
+  const resposta=await fetch("/preview/link",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});
+  const dados=await resposta.json();if(!resposta.ok)throw new Error(dados.erro||"Não foi possível carregar a prévia.");
+  const video=$("preview-source");video.pause();video.src=dados.media_url;video.load();
+  $("preview-video-title").textContent=dados.title||"Vídeo carregado";
+  $("link-preview-status").textContent="Prévia carregada. Abra o editor para assistir e posicionar a marca. 🟢";
+  previewLinkCarregado=url;
+  video.onerror=()=>{$("link-preview-status").textContent="A plataforma não permitiu reproduzir o fluxo diretamente no navegador. O download normal continua disponível.";};
+ }catch(erro){$("link-preview-status").textContent=erro.message;mostrarSusto(erro.message)}
+ finally{botao.disabled=false;botao.textContent="▶ Carregar prévia real do link"}
+}
+$("load-video-preview").addEventListener("click",carregarPreviaDoLink);
+$("url").addEventListener("change",()=>{if($("url").value.trim()!==previewLinkCarregado)$("link-preview-status").textContent="Link alterado. Carregue novamente a prévia."});
+$("preview-watermark").onclick=()=>{if(!$("preview-source").src){$("link-preview-status").textContent="Carregue a prévia real pelo link antes de abrir o posicionador.";return}$("watermark-preview").hidden=false;atualizarPreviaMarca()};
 $("close-watermark-preview").onclick=()=>{$("watermark-preview").hidden=true};
 $("watermark-position").onchange=()=>{const p=$("watermark-position").value;const coords={superior_esquerdo:[15,15],superior_direito:[85,15],inferior_esquerdo:[15,85],inferior_direito:[85,85]};const v=coords[p]||coords.inferior_direito;$("watermark-x").value=v[0];$("watermark-y").value=v[1];atualizarPreviaMarca()};
 $("watermark-preview").onclick=e=>{if(e.target===$("watermark-preview"))$("watermark-preview").hidden=true};
@@ -3367,6 +3386,44 @@ def painel_validar_python():
         "ok": True,
         "mensagem": "Sintaxe Python válida. O código não foi executado."
     })
+
+
+@app.post("/preview/link")
+def preview_link():
+    """Resolve metadados e URL de reprodução sem baixar o arquivo completo."""
+    dados = request.get_json(silent=True) or {}
+    try:
+        url = validar_url(dados.get("url", ""))
+        opcoes = {
+            "quiet": True, "no_warnings": True, "noplaylist": True,
+            "skip_download": True,
+            "format": "best[ext=mp4][vcodec!=none][acodec!=none]/best[ext=mp4]/best",
+            "socket_timeout": 18, "extractor_retries": 1, "retries": 1,
+        }
+        with yt_dlp.YoutubeDL(opcoes) as ydl:
+            info = ydl.extract_info(url, download=False)
+        if info and info.get("entries"):
+            info = next((item for item in info["entries"] if item), None)
+        if not info:
+            return jsonify({"erro": "A plataforma não retornou um vídeo reproduzível."}), 422
+        media_url = info.get("url")
+        if not media_url:
+            formatos = [item for item in info.get("formats", [])
+                        if item.get("url") and item.get("vcodec") != "none"
+                        and item.get("acodec") != "none"]
+            formatos_mp4 = [item for item in formatos if item.get("ext") == "mp4"]
+            candidatos = formatos_mp4 or formatos
+            if candidatos:
+                media_url = candidatos[-1].get("url")
+        if not media_url or urlparse(media_url).scheme not in {"http", "https"}:
+            return jsonify({"erro": "A plataforma não forneceu um fluxo direto compatível com a prévia."}), 422
+        resposta = jsonify({"ok": True, "title": nome_seguro(info.get("title") or "Vídeo"),
+                            "duration": info.get("duration"), "media_url": media_url})
+        resposta.headers["Cache-Control"] = "no-store"
+        return resposta
+    except Exception as exc:
+        log.warning("Falha ao resolver prévia de vídeo: %s", exc)
+        return jsonify({"erro": "Não foi possível obter a prévia deste link: " + str(exc)[:350]}), 422
 
 
 @app.post("/start")
