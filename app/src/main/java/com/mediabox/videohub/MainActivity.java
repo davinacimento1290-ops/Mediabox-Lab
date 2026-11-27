@@ -20,7 +20,8 @@ import android.widget.TextView;
 import android.view.Gravity;
 
 public class MainActivity extends Activity {
-    private static final String HOME_URL = "https://mediabox-android.onrender.com/";
+    private static final String HOME_URL = "https://mediabox-lab-staging.up.railway.app/";
+    private static final String APP_HOST = "mediabox-lab-staging.up.railway.app";
     private WebView webView;
     private FrameLayout root;
     private ProgressBar progress;
@@ -65,7 +66,7 @@ public class MainActivity extends Activity {
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
                 String host = uri.getHost() == null ? "" : uri.getHost();
-                if (host.equals("mediabox-android.onrender.com")) return false;
+                if (host.equals(APP_HOST)) return false;
                 if ("https".equals(uri.getScheme()) || "http".equals(uri.getScheme())) {
                     try {
                         startActivity(new Intent(Intent.ACTION_VIEW, uri));
