@@ -1,0 +1,7 @@
+Flask
+Werkzeug
+yt-dlp==2026.10.26
+requests
+gunicorn
+imageio-ffmpeg
+curl_cffi==0.16.0

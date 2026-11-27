@@ -1,0 +1,90 @@
+name: MEDIABOX Android APK
+
+'on':
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - '.github/workflows/build.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mediabox-android-apk
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Compilar e validar APK MEDIABOX
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Baixar projeto
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+
+      - name: Configurar Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Verificar estrutura Android
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f settings.gradle
+          test -f build.gradle
+          test -f app/build.gradle
+          test -f app/src/main/AndroidManifest.xml
+          test -f app/src/main/java/com/mediabox/videohub/MainActivity.java
+          grep -q 'https://mediabox-android.onrender.com/' app/src/main/java/com/mediabox/videohub/MainActivity.java
+          echo "Estrutura Android e endereço MEDIABOX conferidos."
+
+      - name: Compilar APK
+        run: gradle --no-daemon --stacktrace :app:assembleDebug
+
+      - name: Validar APK, DEX e pacote
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          apk = Path("app/build/outputs/apk/debug/app-debug.apk")
+          with ZipFile(apk) as z:
+              names = set(z.namelist())
+              assert "classes.dex" in names, "classes.dex ausente"
+              assert "AndroidManifest.xml" in names, "Manifest Android ausente"
+              bad = z.testzip()
+              assert bad is None, f"APK corrompido: {bad}"
+          assert apk.stat().st_size > 100_000, "APK inesperadamente pequeno"
+          print(f"APK válido: {apk.stat().st_size} bytes")
+          PY
+          ls -lh "$APK"
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MEDIABOX-Android-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14

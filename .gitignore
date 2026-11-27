@@ -1,0 +1,36 @@
+mediabox_auth.json
+mediabox_session.key
+.env
+*.log
+logs/
+__pycache__/
+*.pyc
+*.backup*
+*.bak
+
+# MEDIABOX - dados privados
+mediabox_admin.sqlite3
+mediabox_admin_auth.json
+mediabox_auth.json
+mediabox_session.key
+*.sqlite3
+__pycache__/
+*.pyc
+
+# MEDIABOX - dados privados
+mediabox_admin.sqlite3
+mediabox_admin_auth.json
+mediabox_auth.json
+mediabox_session.key
+*.sqlite3
+__pycache__/
+*.pyc
+
+# MEDIABOX - dados privados
+mediabox_admin.sqlite3
+mediabox_admin_auth.json
+mediabox_auth.json
+mediabox_session.key
+*.sqlite3
+__pycache__/
+*.pyc

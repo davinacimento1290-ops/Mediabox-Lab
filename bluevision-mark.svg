@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+<title id="title">BlueVision</title><desc id="desc">Símbolo de visão com botão de reprodução em tons de ciano, azul e violeta.</desc>
+<defs>
+ <linearGradient id="accent" x1="12" y1="24" x2="116" y2="108" gradientUnits="userSpaceOnUse">
+  <stop stop-color="#70F0E6"/><stop offset=".52" stop-color="#7B9CFF"/><stop offset="1" stop-color="#C09AFF"/>
+ </linearGradient>
+ <radialGradient id="surface" cx="30%" cy="8%" r="100%">
+  <stop stop-color="#182E4A"/><stop offset="1" stop-color="#07101D"/>
+ </radialGradient>
+ <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+  <feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+ </filter>
+</defs>
+<rect x="3" y="3" width="122" height="122" rx="34" fill="url(#surface)" stroke="url(#accent)" stroke-width="3"/>
+<circle cx="64" cy="64" r="47" fill="#0B1828" stroke="#2C4668" stroke-width="1.5"/>
+<path d="M20 64C32 44 47 34 64 34s32 10 44 30C96 84 81 94 64 94S32 84 20 64Z" fill="none" stroke="url(#accent)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="64" cy="64" r="21" fill="url(#accent)" filter="url(#glow)"/>
+<path d="M59 51.5 79 64 59 76.5Z" fill="#071321"/>
+<path d="M30 29 41 22" stroke="#70F0E6" stroke-width="2.5" stroke-linecap="round" opacity=".8"/>
+<circle cx="96" cy="31" r="3" fill="#C09AFF"/>
+</svg>
