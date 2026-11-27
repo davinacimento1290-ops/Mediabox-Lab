@@ -1,4 +1,5 @@
 name: MEDIABOX Android APK
+# Build trigger refresh: compile the Android project with the configured Ubuntu runner.
 
 'on':
   workflow_dispatch:
