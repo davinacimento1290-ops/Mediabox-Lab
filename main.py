@@ -2431,7 +2431,7 @@ async function carregarPreviaDoLink(){
 }
 $("load-video-preview").addEventListener("click",carregarPreviaDoLink);
 $("url").addEventListener("change",()=>{if($("url").value.trim()!==previewLinkCarregado)$("link-preview-status").textContent="Link alterado. Carregue novamente a prévia."});
-$("preview-watermark").onclick=()=>{if(!$("preview-source").src){$("link-preview-status").textContent="Carregue a prévia real pelo link antes de abrir o posicionador.";return}$("watermark-preview").hidden=false;atualizarPreviaMarca()};
+$("preview-watermark").onclick=()=>{if(!$("preview-source").getAttribute("src")||previewLinkCarregado!==$("url").value.trim()){$("link-preview-status").textContent="Carregue novamente a prévia do link atual antes de abrir o posicionador.";return}$("watermark-preview").hidden=false;atualizarPreviaMarca()};
 $("close-watermark-preview").onclick=()=>{$("watermark-preview").hidden=true;$("preview-source").pause()};
 $("watermark-position").onchange=()=>{const p=$("watermark-position").value;const coords={superior_esquerdo:[15,15],superior_direito:[85,15],inferior_esquerdo:[15,85],inferior_direito:[85,85]};const v=coords[p]||coords.inferior_direito;$("watermark-x").value=v[0];$("watermark-y").value=v[1];atualizarPreviaMarca()};
 $("watermark-preview").onclick=e=>{if(e.target===$("watermark-preview"))$("watermark-preview").hidden=true};
