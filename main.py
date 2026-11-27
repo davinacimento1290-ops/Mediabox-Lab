@@ -94,45 +94,11 @@ app.config.update(
     SESSION_COOKIE_SECURE=os.environ.get("MEDIABOX_COOKIE_SECURE", "").lower() == "true"
 )
 
-def carregar_credenciais():
-    usuario_env = os.environ.get("MEDIABOX_USERNAME")
-    hash_env = os.environ.get("MEDIABOX_PASSWORD_HASH")
-
-    if usuario_env and hash_env:
-        return {
-            "usuario": usuario_env,
-            "senha_hash": hash_env
-        }
-
-    if not os.path.exists(AUTH_FILE):
-        if os.environ.get("MEDIABOX_HOSTED", "").lower() == "true":
-            raise RuntimeError(
-                "Configure MEDIABOX_USERNAME e MEDIABOX_PASSWORD_HASH "
-                "nas variáveis privadas do servidor."
-            )
-
-        dados = {
-            "usuario": "cliente",
-            "senha_hash": generate_password_hash("mediabox")
-        }
-        with open(AUTH_FILE, "w", encoding="utf-8") as f:
-            json.dump(dados, f, ensure_ascii=False, indent=2)
-        return dados
-
-    try:
-        with open(AUTH_FILE, "r", encoding="utf-8") as f:
-            dados = json.load(f)
-        if dados.get("usuario") and dados.get("senha_hash"):
-            return dados
-    except (OSError, ValueError, TypeError):
-        pass
-
-    raise RuntimeError(
-        "O arquivo mediabox_auth.json está inválido. "
-        "Não foi recriado para evitar perder sua senha."
-    )
-
-CREDENCIAIS = carregar_credenciais()
+# Acesso público sem conta individual. O registro interno serve apenas para auditoria.
+CREDENCIAIS = {
+    "usuario": "visitante",
+    "senha_hash": generate_password_hash(secrets.token_urlsafe(32))
+}
 
 import admin_control
 admin_control.inicializar(
@@ -152,144 +118,27 @@ mediabox_achievements_preview.register(
 )
 mediabox_achievements_preview_record = app.extensions["mediabox_achievement_record"]
 
-LOGIN_HTML = r"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="application-name" content="BLUEVISION"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/brand/bluevision-mark.svg" type="image/svg+xml"><meta name="theme-color" content="#080b14"><title>Entrar • BLUEVISION</title><style>
-:root{color-scheme:dark;--bg:#070a12;--line:#293954;--text:#f4f7ff;--muted:#96a4bd;--cyan:#70f0e6;--blue:#7b9cff;--pink:#c09aff}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(ellipse at 10% 0%,#183b54 0,transparent 36%),radial-gradient(ellipse at 95% 12%,#35205a 0,transparent 30%),var(--bg);font-family:Inter,system-ui,Arial;color:var(--text)}.login{width:min(430px,100%);padding:28px;border:1px solid #30415e;border-radius:25px;background:linear-gradient(145deg,#121d30f5,#0c1321f5);box-shadow:0 24px 80px #0007}.brand{display:flex;align-items:center;gap:12px;margin-bottom:28px}.mark{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--cyan),var(--blue),var(--pink));color:#07101b;font-weight:950}.name{font-weight:900;letter-spacing:2px}.sub{font-size:11px;color:var(--muted);letter-spacing:2px}.tag{color:var(--cyan);font-size:11px;font-weight:800;letter-spacing:2px}h1{font-size:27px;margin:12px 0 6px}p{color:var(--muted);font-size:13px;line-height:1.6}label{display:block;font-size:12px;margin:17px 0 8px;color:#bdc9dc}input{width:100%;padding:15px;border:1px solid #30415e;border-radius:13px;background:#080e19;color:white;font:inherit;outline:none}input:focus{border-color:var(--cyan);box-shadow:0 0 0 4px #70f0e615}button{width:100%;padding:15px;margin-top:22px;border:0;border-radius:14px;background:linear-gradient(110deg,#70f0e6,#8aa8ff 60%,#c09aff);color:#08101c;font-weight:850;font-size:15px}.error{margin-top:14px;padding:12px;border:1px solid #ff829466;border-radius:12px;color:#ffb5c0;background:#ff829415;font-size:13px}.foot{text-align:center;margin-top:22px;font-size:11px;color:#8290a9}</style><style id="mb-settings-styles">
-#mb-settings[hidden],#mb-birthday[hidden]{display:none!important}
-#mb-settings{position:fixed;inset:0;z-index:60000;display:grid;place-items:center;padding:14px;background:#030713e8;backdrop-filter:blur(13px)}
-#mb-settings .mb-settings-dialog{width:min(760px,100%);max-height:92vh;overflow:auto;padding:20px;border:1px solid #3a4e70;border-radius:23px;background:radial-gradient(ellipse at 5% 0%,#203a58 0,transparent 45%),linear-gradient(145deg,#121d30,#090f1d);box-shadow:0 28px 100px #000b}
-#mb-settings .mb-settings-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-#mb-settings .mb-settings-head small{color:#70f0e6;font-size:10px;font-weight:900;letter-spacing:2px}
-#mb-settings .mb-settings-head h2{margin:3px 0 0;font-size:24px}
-#mb-settings .mb-settings-close{width:42px;min-height:42px;padding:7px;background:#17243a;border:1px solid #405475;color:#fff;font-size:20px}
-#mb-settings .mb-settings-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
-#mb-settings .mb-settings-tabs button{min-height:44px;padding:10px;border:1px solid #354968;background:#111d31;color:#bdc9dc;font-weight:800}
-#mb-settings .mb-settings-tabs button[aria-selected="true"]{border-color:#70f0e6;background:#12313a;color:#9dfff2;box-shadow:0 0 0 2px #70f0e622}
-#mb-settings .mb-settings-copy{margin:0 0 14px;color:#aab7ce;font-size:13px;line-height:1.6}
-#mb-settings .mb-error-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-#mb-settings .mb-error-option{display:block;width:100%;min-width:0;padding:13px;text-align:left;border:1px solid #344763;border-radius:15px;background:#0b1322;color:#f4f7ff;cursor:pointer}
-#mb-settings .mb-error-option[aria-pressed="true"]{border-color:#70f0e6;box-shadow:0 0 0 2px #70f0e622,0 0 22px #70f0e612}
-#mb-settings .mb-error-option strong{display:block;margin-bottom:4px;font-size:13px}
-#mb-settings .mb-error-option small{display:block;min-height:32px;color:#96a4bd;font-size:11px;line-height:1.45}
-#mb-settings .mb-error-swatch{height:35px;margin-bottom:10px;border-radius:9px;border:1px solid #4b6081;background:linear-gradient(110deg,#17243a,#283d60)}
-#mb-settings .mb-error-option[data-error-choice="minimal"] .mb-error-swatch{background:linear-gradient(110deg,#f4f7ff,#b9c7dc)}
-#mb-settings .mb-error-option[data-error-choice="terminal"] .mb-error-swatch{background:repeating-linear-gradient(0deg,#06110b,#06110b 5px,#0d2115 6px);border-color:#37e878}
-#mb-settings .mb-error-option[data-error-choice="neon"] .mb-error-swatch{background:linear-gradient(110deg,#31004c,#071e3c);border-color:#ff42dc;box-shadow:inset 0 0 13px #00fff255}
-#mb-settings .mb-settings-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
-#mb-settings .mb-settings-actions button{flex:1;min-width:150px;min-height:44px}
-#mb-settings .mb-settings-secondary{background:#17243a;border:1px solid #435777;color:#e5edff}
-#mb-settings .mb-command-box{padding:15px;border:1px solid #344763;border-radius:16px;background:#0a1220}
-#mb-settings .mb-command-box label{margin-bottom:8px}
-#mb-settings .mb-command-box input{width:100%;font:inherit}
-#mb-settings .mb-command-status{min-height:20px;margin:10px 0 0;color:#9fe9c2;font-size:12px}
-#mb-settings .mb-command-hint{margin:9px 0 0;color:#8999b4;font-size:11px;line-height:1.5}
-#mb-birthday{position:fixed;inset:0;z-index:110000;display:grid;place-items:center;padding:18px;background:radial-gradient(circle at 50% 15%,#463079ee,#080b18 72%);overflow:auto}
-#mb-birthday .mb-birthday-card{position:relative;width:min(480px,100%);padding:24px 20px;text-align:center;border:1px solid #8f81d8;border-radius:27px;background:linear-gradient(145deg,#191d3a,#0b1020);box-shadow:0 30px 100px #000b,0 0 55px #a58bff22;overflow:hidden}
-#mb-birthday .mb-birthday-close{position:absolute;right:13px;top:13px;width:auto;min-height:38px;padding:7px 11px;background:#202b48;border:1px solid #50618a;color:#fff}
-#mb-birthday .mb-birthday-kicker{margin:14px 0 5px;color:#a8f4f0;font-size:10px;font-weight:900;letter-spacing:2.5px}
-#mb-birthday h1{margin:5px 0 8px;font-size:clamp(28px,7vw,42px);line-height:1.1;background:linear-gradient(100deg,#fff2a8,#ff9dd7,#91f4ff);background-clip:text;-webkit-background-clip:text;color:transparent}
-#mb-birthday .mb-birthday-message{max-width:360px;margin:0 auto;color:#d6def5;font-size:14px;line-height:1.65}
-#mb-birthday .mb-bear{display:block;width:min(230px,68vw);height:auto;margin:8px auto 12px;filter:drop-shadow(0 16px 18px #0007);animation:mbBearWave 2s ease-in-out infinite}
-#mb-birthday .mb-speech{display:inline-block;margin:4px auto 12px;padding:12px 17px;border:1px solid #8ceeff88;border-radius:17px;background:#172c45;color:#fff;font-size:17px;font-weight:900;box-shadow:0 0 25px #70f0e622}
-#mb-birthday .mb-birthday-footer{margin-top:12px;color:#99a9c6;font-size:11px;letter-spacing:1px}
-@keyframes mbBearWave{0%,100%{transform:rotate(-2deg) translateY(0)}50%{transform:rotate(2deg) translateY(-5px)}}
-body[data-error-style="minimal"] #error-center{background:rgba(3,7,18,.78);backdrop-filter:blur(5px)}
-body[data-error-style="minimal"] #error-center .error-panel{width:min(430px,100%);border:1px solid #d7deea;border-radius:14px;background:#f4f7fb;color:#172238;box-shadow:0 20px 70px #0008}
-body[data-error-style="minimal"] #error-center .error-brand{color:#425b82}
-body[data-error-style="minimal"] #error-center .error-status{border-color:#e8b0b8;background:#ffeaed;color:#a8324b}
-body[data-error-style="minimal"] #error-center .error-symbol{border-color:#e4c4c8;background:#fff0f1;color:#be324e}
-body[data-error-style="minimal"] #error-center h2{background:none;color:#172238}
-body[data-error-style="minimal"] #error-center .error-summary{color:#52617a}
-body[data-error-style="minimal"] #error-center .error-fact{border-color:#dce3ed;background:#fff}
-body[data-error-style="minimal"] #error-center .error-fact span{color:#67748a}
-body[data-error-style="minimal"] #error-center .error-fact strong{color:#1f2b40}
-body[data-error-style="minimal"] #error-center details{border-color:#dce3ed;background:#fff}
-body[data-error-style="minimal"] #error-center summary{color:#31547b}
-body[data-error-style="minimal"] #error-center .error-technical{background:#eef2f7;color:#25334a}
-body[data-error-style="minimal"] #error-center .error-copy{background:#e5ebf4;color:#263b59;border-color:#c5d0df}
-body[data-error-style="terminal"] #error-center .error-panel{border:1px solid #38ed79;border-radius:8px;background:#020a05;color:#b7ffc9;box-shadow:0 0 35px #16ff6544;font-family:ui-monospace,monospace}
-body[data-error-style="terminal"] #error-center .error-brand,body[data-error-style="terminal"] #error-center summary{color:#39ef7b}
-body[data-error-style="terminal"] #error-center .error-status{border-color:#39ef7b66;background:#073016;color:#72ff9e}
-body[data-error-style="terminal"] #error-center .error-symbol{border-color:#39ef7b;background:#061b0d;color:#39ef7b}
-body[data-error-style="terminal"] #error-center h2{background:none;color:#72ff9e;font-family:ui-monospace,monospace}
-body[data-error-style="terminal"] #error-center .error-summary,body[data-error-style="terminal"] #error-center .error-fact strong{color:#b7ffc9}
-body[data-error-style="terminal"] #error-center .error-fact,body[data-error-style="terminal"] #error-center details{border-color:#1b773d;background:#031109}
-body[data-error-style="terminal"] #error-center .error-fact span{color:#69cb8c}
-body[data-error-style="terminal"] #error-center .error-technical{background:#000;color:#5dff91;border:1px solid #16542d}
-body[data-error-style="terminal"] #error-center .error-copy{background:#092513;color:#8effb0;border-color:#247744}
-body[data-error-style="neon"] #error-center .error-panel{border:1px solid #ff4bd8;background:radial-gradient(ellipse at 15% 0%,#4a1765,transparent 45%),linear-gradient(145deg,#100a24,#050817);box-shadow:0 0 22px #ff4bd855,0 0 45px #00eaff22}
-body[data-error-style="neon"] #error-center .error-brand,body[data-error-style="neon"] #error-center summary{color:#7ffcff}
-body[data-error-style="neon"] #error-center .error-status{border-color:#ff4bd888;background:#ff4bd81b;color:#ff9ae9}
-body[data-error-style="neon"] #error-center .error-symbol{border-color:#7ffcff88;background:linear-gradient(145deg,#173e59,#361747);box-shadow:0 0 22px #00eaff33}
-body[data-error-style="neon"] #error-center h2{background:linear-gradient(100deg,#7ffcff,#ff89e3);background-clip:text;-webkit-background-clip:text;color:transparent}
-@media(max-width:520px){ #mb-settings{padding:8px}#mb-settings .mb-settings-dialog{padding:15px;border-radius:19px;max-height:95vh}#mb-settings .mb-error-options{grid-template-columns:1fr}#mb-settings .mb-error-option small{min-height:0}}
-.mark{object-fit:cover}
-</style></head><body><main class="login"><header class="brand"><img class="mark" src="/brand/bluevision-mark.svg" alt="BlueVision"><div><div class="name">BLUEVISION</div><div class="sub">VIDEO STUDIO</div></div></header><div class="tag">ÁREA PROTEGIDA</div><h1>Entre na sua conta</h1><p>Acesse sua central de vídeos com seu usuário e senha.</p><form method="post" action="/login"><label for="username">USUÁRIO</label><input id="username" name="username" autocomplete="username" required autofocus><label for="password">SENHA</label><input id="password" name="password" type="password" autocomplete="current-password" required><label for="captcha_answer">VERIFICAÇÃO DE SEGURANÇA · {{ captcha_question }}</label><input id="captcha_answer" name="captcha_answer" inputmode="numeric" autocomplete="off" placeholder="Digite o resultado" required><input type="hidden" name="captcha_token" value="{{ captcha_token }}"><button type="submit">Entrar no BLUEVISION</button></form>{% if error %}<div class="error">{{ error }}</div>{% endif %}<div class="foot">BLUEVISION · ACESSO PRIVADO · CONECTADO POR ATÉ 90 DIAS NESTE DISPOSITIVO</div></main></body></html>"""
-
-
-
 @app.before_request
-def proteger_rotas():
-    if request.endpoint in {"login", "static", "bluevision_manifest", "bluevision_service_worker", "bluevision_brand_mark"}:
-        return None
-
-    # Somente links assinados podem acessar arquivos sem sessão.
+def preparar_sessao_publica():
+    # O aplicativo abre diretamente; a área administrativa continua protegida
+    # pelo fluxo independente de autenticação definido em admin_control.py.
     if request.endpoint == "entregar_arquivo":
         nome = (request.view_args or {}).get("nome", "")
         if validar_token_download(nome, request.args.get("token")):
             return None
-        return jsonify({
-            "erro": "Link de download inválido ou expirado."
-        }), 403
+        return jsonify({"erro": "Link de download inválido ou expirado."}), 403
 
     if not session.get("mediabox_autenticado"):
-        if request.path.startswith(("/status", "/start", "/search/", "/fila/")):
-            return jsonify({"erro": "Faça login para continuar."}), 401
-        return redirect(url_for("login", next=request.path))
+        session.permanent = True
+        session["mediabox_autenticado"] = True
+        session["mediabox_usuario"] = "visitante"
+
 
 @app.get("/captcha/novo")
 def captcha_novo():
-    if not session.get("mediabox_autenticado"):
-        return jsonify({"erro": "Faça login para continuar."}), 401
     question, token = emitir_captcha(session)
     return jsonify({"question": question, "token": token, "expires_in": 180})
 
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if session.get("mediabox_autenticado"):
-        return redirect(url_for("inicio"))
-    error = None
-    if request.method == "POST":
-        usuario = request.form.get("username", "").strip()
-        senha = request.form.get("password", "")
-        captcha_ok, captcha_error = verificar_captcha(
-            session,
-            request.form.get("captcha_token", ""),
-            request.form.get("captcha_answer", "")
-        )
-        if captcha_ok and validar_usuario(usuario, senha):
-            session.clear()
-            session.permanent = True
-            session["mediabox_autenticado"] = True
-            session["mediabox_usuario"] = usuario
-            destino = request.args.get("next", "/")
-            if not destino.startswith("/") or destino.startswith("//"):
-                destino = "/"
-            return redirect(destino)
-        error = captcha_error if not captcha_ok else "Usuário ou senha incorretos."
-    captcha_question, captcha_token = emitir_captcha(session)
-    return render_template_string(
-        LOGIN_HTML, error=error,
-        captcha_question=captcha_question,
-        captcha_token=captcha_token
-    )
-
-@app.post("/sair")
-def sair():
-    session.clear()
-    return redirect(url_for("login"))
 
 lock = threading.Lock()
 estado = {"ativo": False, "progresso": 0, "status": "Pronto para baixar",
@@ -1781,7 +1630,7 @@ button{min-height:48px;border-radius:13px;touch-action:manipulation}button:activ
     </section>
   </section>
 </div>
-<div class="topline"><div class="brand"><img class="brand-mark" src="/brand/bluevision-mark.svg" alt="BlueVision"><div><div class="brand-name">BLUEVISION</div><div class="brand-sub">VIDEO STUDIO</div></div></div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><a class="pill" href="/admin" style="text-decoration:none">🔐 ADMIN CONTROL</a><form method="post" action="/sair" style="margin:0"><button class="pill" type="submit" style="width:auto;cursor:pointer">Sair</button></form></div></div>
+<div class="topline"><div class="brand"><img class="brand-mark" src="/brand/bluevision-mark.svg" alt="BlueVision"><div><div class="brand-name">BLUEVISION</div><div class="brand-sub">VIDEO STUDIO</div></div></div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><a class="pill" href="/admin" style="text-decoration:none">🔐 ADMIN CONTROL</a></div></div>
 
 
 <div id="mb-settings" hidden>
