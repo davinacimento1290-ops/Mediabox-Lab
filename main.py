@@ -5,7 +5,6 @@ import os, re, sys, json, time, logging, threading, ipaddress, subprocess, html,
 from urllib.parse import urlparse, urljoin, unquote, parse_qs, quote
 from datetime import timedelta
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
-from mediabox_captcha import configurar_chave as configurar_chave_captcha, emitir_captcha, verificar_captcha
 
 def instalar(modulo, pacote):
     try:
@@ -64,7 +63,6 @@ def carregar_chave():
     return chave
 
 app.secret_key = os.environ.get("MEDIABOX_SECRET_KEY") or carregar_chave()
-configurar_chave_captcha(app.secret_key)
 
 # Links de download assinados e temporários
 DOWNLOAD_TOKEN_MAX_AGE = 15 * 60
@@ -134,10 +132,6 @@ def preparar_sessao_publica():
         session["mediabox_usuario"] = "visitante"
 
 
-@app.get("/captcha/novo")
-def captcha_novo():
-    question, token = emitir_captcha(session)
-    return jsonify({"question": question, "token": token, "expires_in": 180})
 
 
 lock = threading.Lock()
@@ -2865,46 +2859,11 @@ $("error-copy").onclick=async()=>{
   try{await navigator.clipboard.writeText(diagnosticoAtual);$("error-copy").textContent="Diagnóstico copiado ✓"}
   catch(_){$("error-technical").focus();$("error-copy").textContent="Selecione os detalhes para copiar"}
 };
-async function solicitarRespostaCaptcha(pergunta){
-  return new Promise(resolve=>{
-    const fundo=document.createElement("div");
-    fundo.style.cssText="position:fixed;inset:0;z-index:120000;display:grid;place-items:center;padding:18px;background:#030713e8;backdrop-filter:blur(12px)";
-    const painel=document.createElement("form");
-    painel.style.cssText="width:min(390px,100%);padding:24px;border:1px solid #496184;border-radius:22px;background:linear-gradient(145deg,#14233a,#09111f);box-shadow:0 25px 90px #000b;color:#f4f7ff;font-family:Inter,system-ui,Arial";
-    const selo=document.createElement("div");selo.textContent="MEDIABOX • SEGURANÇA";selo.style.cssText="color:#70f0e6;font-size:10px;font-weight:900;letter-spacing:2px";
-    const titulo=document.createElement("h2");titulo.textContent="Verificação anti-robô";titulo.style.cssText="margin:10px 0 6px;font-size:22px";
-    const texto=document.createElement("p");texto.textContent="Para continuar, resolva esta conta simples:";texto.style.cssText="color:#aab7ce;font-size:13px;line-height:1.5";
-    const conta=document.createElement("div");conta.textContent=pergunta;conta.style.cssText="margin:16px 0;padding:17px;text-align:center;border:1px solid #36516f;border-radius:14px;background:#0a1728;color:#8ff8ed;font-size:27px;font-weight:900;letter-spacing:2px";
-    const campo=document.createElement("input");campo.type="text";campo.inputMode="numeric";campo.autocomplete="off";campo.placeholder="Digite o resultado";campo.required=true;campo.style.cssText="width:100%;padding:14px;border:1px solid #405777;border-radius:12px;background:#080e19;color:white;font:inherit;outline:none";
-    const acoes=document.createElement("div");acoes.style.cssText="display:flex;gap:9px;margin-top:15px";
-    const cancelar=document.createElement("button");cancelar.type="button";cancelar.textContent="Cancelar";cancelar.style.cssText="flex:1;padding:12px;border:1px solid #405777;border-radius:11px;background:#17243a;color:#e5edff;font-weight:800";
-    const confirmar=document.createElement("button");confirmar.type="submit";confirmar.textContent="Verificar";confirmar.style.cssText="flex:1;padding:12px;border:0;border-radius:11px;background:linear-gradient(110deg,#70f0e6,#8aa8ff);color:#08101c;font-weight:900";
-    acoes.append(cancelar,confirmar);painel.append(selo,titulo,texto,conta,campo,acoes);fundo.appendChild(painel);document.body.appendChild(fundo);
-    const encerrar=valor=>{fundo.remove();resolve(valor)};
-    cancelar.addEventListener("click",()=>encerrar(null));
-    fundo.addEventListener("click",e=>{if(e.target===fundo)encerrar(null)});
-    painel.addEventListener("submit",e=>{e.preventDefault();encerrar(campo.value.trim())});
-    campo.focus();
-  });
-}
 const fetchOriginal=window.fetch.bind(window);
 window.fetch=async(...args)=>{
   const requisicao=args[0];
   const endpoint=typeof requisicao==="string"?requisicao:(requisicao&&requisicao.url)||"requisição";
   try{
-    if((endpoint.split("?")[0]==="/start"||endpoint.split("?")[0]==="/fila/adicionar")&&
-       String((args[1]||{}).method||"GET").toUpperCase()==="POST"){
-      const desafioResponse=await fetchOriginal("/captcha/novo",{cache:"no-store"});
-      const desafio=await desafioResponse.json();
-      if(!desafioResponse.ok||!desafio.token||!desafio.question)throw new Error("Não foi possível carregar a verificação de segurança.");
-      const respostaUsuario=await solicitarRespostaCaptcha(desafio.question);
-      if(respostaUsuario===null)throw new Error("Verificação cancelada. Nenhuma operação foi iniciada.");
-      let dadosEnvio={};
-      try{dadosEnvio=JSON.parse((args[1]||{}).body||"{}")}catch(_){}
-      dadosEnvio.captcha_token=desafio.token;
-      dadosEnvio.captcha_answer=String(respostaUsuario).trim();
-      args=[args[0],{...(args[1]||{}),body:JSON.stringify(dadosEnvio)}];
-    }
     const resposta=await fetchOriginal(...args);
     let dados=null,texto="";
     try{
@@ -3709,11 +3668,6 @@ def preview_stream(token):
 @app.post("/start")
 def start():
     d = request.get_json(silent=True) or {}
-    captcha_ok, captcha_error = verificar_captcha(
-        session, d.get("captcha_token", ""), d.get("captcha_answer", "")
-    )
-    if not captcha_ok:
-        return jsonify({"erro": captcha_error}), 403
     try:
         url = validar_url(d.get("url", ""))
         formato = d.get("formato", "mp4")
@@ -3753,11 +3707,6 @@ def start():
 @app.post("/fila/adicionar")
 def fila_adicionar():
     d = request.get_json(silent=True) or {}
-    captcha_ok, captcha_error = verificar_captcha(
-        session, d.get("captcha_token", ""), d.get("captcha_answer", "")
-    )
-    if not captcha_ok:
-        return jsonify({"erro": captcha_error}), 403
     raw_urls = d.get("urls", d.get("url", ""))
 
     if isinstance(raw_urls, str):
