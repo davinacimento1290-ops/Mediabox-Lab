@@ -351,69 +351,31 @@ public class FloatingOverlayService extends Service {
 
     private void iniciarFluxoDownload() {
         String link = linkInput == null ? "" : linkInput.getText().toString().trim();
-        if (link.isEmpty()) { setStatus("Cole o link do vídeo primeiro."); return; }
+        if (link.isEmpty()) { setStatus("Cole um link válido primeiro."); return; }
         if (downloadRunning) { setStatus("Já existe um download em andamento."); return; }
-        setBusy(true, "Preparando verificação de segurança...");
+        setBusy(true, "Enviando vídeo ao MEDIABOX...");
         network.execute(() -> {
             try {
-                JSONObject challenge = requestJson("GET", "/captcha/novo", null);
-                String question = challenge.optString("question", "");
-                String token = challenge.optString("token", "");
-                if (question.isEmpty() || token.isEmpty()) throw new Exception("Não foi possível carregar a verificação.");
-                handler.post(() -> mostrarCaptcha(link, question, token));
+                JSONObject payload = new JSONObject();
+                payload.put("url", link);
+                payload.put("plataforma", "auto");
+                payload.put("formato", "mp4");
+                payload.put("marca_dagua", false);
+                payload.put("marca_tipo", "nao");
+                payload.put("posicao_marca", "inferior_direito");
+                requestJson("POST", "/start", payload);
+                downloadRunning = true;
+                handler.post(() -> {
+                    setBusy(false, "Download iniciado no servidor.");
+                    if (progressBar != null) progressBar.setProgress(0);
+                    handler.removeCallbacks(pollStatus);
+                    handler.post(pollStatus);
+                });
             } catch (Exception e) {
-                handler.post(() -> setBusy(false, e.getMessage()));
+                handler.post(() -> setBusy(false,
+                    e.getMessage() == null ? "Não foi possível iniciar o download." : e.getMessage()));
             }
         });
-    }
-
-    private void mostrarCaptcha(String link, String question, String token) {
-        if (!panelOpen) return;
-        setBusy(false, "Confirme a verificação para iniciar o download.");
-        EditText answer = new EditText(this);
-        answer.setSingleLine(true);
-        answer.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-        AlertDialog dialog = new AlertDialog.Builder(this)
-            .setTitle("Verificação MEDIABOX")
-            .setMessage(question)
-            .setView(answer)
-            .setNegativeButton("Cancelar", (d, w) -> { })
-            .setPositiveButton("Continuar", (d, w) -> {
-                String value = answer.getText().toString().trim();
-                setBusy(true, "Enviando link ao servidor...");
-                network.execute(() -> {
-                    try {
-                        JSONObject payload = new JSONObject();
-                        payload.put("url", link);
-                        payload.put("plataforma", "auto");
-                        payload.put("formato", "mp4");
-                        payload.put("marca_dagua", false);
-                        payload.put("marca_tipo", "nao");
-                        payload.put("posicao_marca", "inferior_direito");
-                        payload.put("captcha_token", token);
-                        payload.put("captcha_answer", value);
-                        requestJson("POST", "/start", payload);
-                        downloadRunning = true;
-                        handler.post(() -> {
-                            setBusy(false, "Download iniciado no servidor.");
-                            progressBar.setProgress(0);
-                            handler.removeCallbacks(pollStatus);
-                            handler.post(pollStatus);
-                        });
-                    } catch (Exception e) {
-                        handler.post(() -> setBusy(false, e.getMessage()));
-                    }
-                });
-            }).create();
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setType(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-                ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-                : WindowManager.LayoutParams.TYPE_PHONE);
-            dialog.getWindow().setSoftInputMode(
-                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
-            );
-        }
-        dialog.show();
     }
 
     private JSONObject requestJson(String method, String path, JSONObject body) throws Exception {
