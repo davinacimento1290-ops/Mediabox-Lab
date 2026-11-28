@@ -8,13 +8,11 @@ name: MEDIABOX Android APK
       - main
     paths:
       - 'app/**'
-      - 'main.py'
       - 'powered_by_mediabox.png.b64'
       - 'mediabox_features.py'
       - 'build.gradle'
       - 'settings.gradle'
       - 'gradle.properties'
-      - '.github/workflows/build.yml'
 
 permissions:
   contents: read
