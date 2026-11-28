@@ -510,15 +510,23 @@ def aplicar_marca_dagua(caminho, duracao=None, posicao="inferior_direito", pos_x
         pos_y = max(0.0, min(100.0, float(pos_y)))
     except (TypeError, ValueError):
         pos_x, pos_y = 88.0, 88.0
-    coordenadas = f"x='max(0,min(W-w,W*{pos_x/100:.5f}-w/2))':y='max(0,min(H-h,H*{pos_y/100:.5f}-h/2))"
+    # Marca proporcional: 12% da largura do vídeo, limitada a 120 px.
+    # As expressões do overlay evitam funções com vírgulas que quebravam o grafo
+    # de filtros em algumas builds do FFmpeg.
+    pos_x_frac = pos_x / 100.0
+    pos_y_frac = pos_y / 100.0
+    filtro_video = (
+        "[1:v]scale=w='min(120\\,iw*0.12)':h=-1,"
+        "format=rgba,colorchannelmixer=aa=0.75[wm];"
+        f"[0:v][wm]overlay=x='(W-w)*{pos_x_frac:.5f}':"
+        f"y='(H-h)*{pos_y_frac:.5f}'[outv]"
+    )
     comando = [
         ffmpeg, "-y", "-hide_banner", "-loglevel", "error", "-nostats",
         "-threads", "2", "-i", caminho,
         "-loop", "1", "-threads", "1", "-i", logo,
         "-filter_complex_threads", "1",
-        "-filter_complex",
-        "[1:v]scale=180:-1,format=rgba,colorchannelmixer=aa=0.75[wm];"
-        f"[0:v][wm]overlay={coordenadas}[outv]",
+        "-filter_complex", filtro_video,
         "-map", "[outv]", "-map", "0:a?",
         "-c:v", "libx264", "-threads", "2", "-preset", "ultrafast",
         "-crf", "24", "-pix_fmt", "yuv420p",
