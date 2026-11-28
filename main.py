@@ -618,7 +618,7 @@ class YouTubeLogCapture:
         self.logger_base.error(str(mensagem))
 
 
-def baixar(url, formato, plataforma, usuario="desconhecido", marca_dagua=False, posicao_marca="inferior_direito", marca_x=88, marca_y=88, marca_tipo="dias_edits")
+def baixar(url, formato, plataforma, usuario="desconhecido", marca_dagua=False, posicao_marca="inferior_direito", marca_x=88, marca_y=88, marca_tipo="dias_edits"):
     logger_youtube = None
     try:
         url = validar_url(url)
@@ -2437,13 +2437,25 @@ async function carregarPreviaDoLink(){
  const url=$("url").value.trim();
  if(!url){$("link-preview-status").textContent="Cole primeiro o link do vídeo.";return}
  const botao=$("load-video-preview");botao.disabled=true;botao.textContent="Buscando vídeo...";
- $("link-preview-status").textContent="O Python está analisando o link com yt-dlp...";
+ $("link-preview-status").textContent="Consultando o API-HUB e preparando a prévia...";
  try{
+  let avisoApiHub="";
+  try{
+   const host=new URL(url).hostname.toLowerCase();
+   if(["youtube.com","www.youtube.com","m.youtube.com","youtu.be","www.youtu.be"].includes(host)){
+    const metaResp=await fetch("/api/youtube/video?url="+encodeURIComponent(url),{headers:{"Accept":"application/json"}});
+    const meta=await metaResp.json();
+    if(!metaResp.ok)throw new Error(meta.erro||"API-HUB indisponível.");
+    const v=meta.video||{};
+    const duracao=v.duration?" · duração "+v.duration:"";
+    avisoApiHub="API-HUB: "+(v.title||"Vídeo identificado")+" · "+(v.channel||"Canal não informado")+duracao+". Metadados confirmados; a API oficial não entrega o arquivo MP4. ";
+   }
+  }catch(metaErro){avisoApiHub="API-HUB: "+metaErro.message+" "; }
   const resposta=await fetch("/preview/link",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});
   const dados=await resposta.json();if(!resposta.ok)throw new Error(dados.erro||"Não foi possível carregar a prévia.");
   const video=$("preview-source");video.pause();video.src=dados.media_url;video.load();
   $("preview-video-title").textContent=dados.title||"Vídeo carregado";
-  $("link-preview-status").textContent="Prévia carregada. Abra o editor para assistir e posicionar a marca. 🟢";
+  $("link-preview-status").textContent=avisoApiHub+"Prévia carregada. Abra o editor para assistir e posicionar a marca. 🟢";
   previewLinkCarregado=url;
   video.onerror=()=>{$("link-preview-status").textContent="A plataforma não permitiu reproduzir o fluxo diretamente no navegador. O download normal continua disponível.";};
  }catch(erro){$("link-preview-status").textContent=erro.message;mostrarSusto(erro.message)}
@@ -3434,6 +3446,44 @@ def painel_validar_python():
         "ok": True,
         "mensagem": "Sintaxe Python válida. O código não foi executado."
     })
+
+
+@app.get("/api/youtube/video")
+def api_hub_youtube_video():
+    """Proxy seguro para os metadados do YouTube no API-HUB; nunca retorna credenciais."""
+    try:
+        url = validar_url(request.args.get("url", ""))
+        if detectar(url) != "youtube":
+            return jsonify({"erro": "Este endpoint aceita somente links do YouTube."}), 422
+        base_url = os.environ.get("API_HUB_BASE_URL", "https://api-hub-lwnq.onrender.com").rstrip("/")
+        admin_token = os.environ.get("API_HUB_ADMIN_TOKEN", "").strip()
+        if not admin_token:
+            return jsonify({"erro": "Integração API-HUB pendente: configure API_HUB_ADMIN_TOKEN no Railway."}), 503
+        resposta = requests.get(
+            base_url + "/v1/google/youtube/video",
+            params={"url": url},
+            headers={"X-Admin-Token": admin_token, "Accept": "application/json"},
+            timeout=(5, 22)
+        )
+        try:
+            dados = resposta.json()
+        except ValueError:
+            dados = {}
+        if resposta.status_code != 200:
+            detalhe = dados.get("detail") or dados.get("erro") or "API-HUB indisponível."
+            if isinstance(detalhe, dict):
+                detalhe = detalhe.get("message") or "A consulta do YouTube foi recusada."
+            return jsonify({"erro": str(detalhe)[:300]}), resposta.status_code if resposta.status_code in (401, 404, 422, 503) else 502
+        saida = jsonify(dados)
+        saida.headers["Cache-Control"] = "no-store"
+        return saida
+    except ValueError as exc:
+        return jsonify({"erro": str(exc)}), 422
+    except requests.Timeout:
+        return jsonify({"erro": "O API-HUB demorou demais para responder. Tente novamente."}), 504
+    except requests.RequestException:
+        log.exception("Falha de comunicação com API-HUB")
+        return jsonify({"erro": "Não foi possível conectar ao API-HUB agora."}), 502
 
 
 @app.post("/preview/link")
