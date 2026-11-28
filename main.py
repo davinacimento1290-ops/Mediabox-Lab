@@ -511,13 +511,13 @@ def aplicar_marca_dagua(caminho, duracao=None, posicao="inferior_direito", pos_x
     except (TypeError, ValueError):
         pos_x, pos_y = 88.0, 88.0
     # Recorta 8% das bordas da arte e amplia a área visível para cerca de
-    # 62% da largura do vídeo (máximo 650 px), mantendo a proporção original.
+    # 70% da largura do vídeo (máximo 760 px), mantendo a proporção original.
     # O mesmo recorte é reproduzido na prévia do site.
     pos_x_frac = pos_x / 100.0
     pos_y_frac = pos_y / 100.0
     filtro_video = (
         "[1:v]crop=w='iw*0.84':h='ih*0.84':x='iw*0.08':y='ih*0.08',"
-        "scale=w='min(650\\,iw*0.62)':h=-1,"
+        "scale=w='min(760\\,iw*0.70)':h=-1,"
         "format=rgba,colorchannelmixer=aa=0.92[wm];"
         f"[0:v][wm]overlay=x='(W-w)*{pos_x_frac:.5f}':"
         f"y='(H-h)*{pos_y_frac:.5f}'[outv]"
