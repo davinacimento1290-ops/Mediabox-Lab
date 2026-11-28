@@ -3629,6 +3629,9 @@ def preview_stream(token):
     if not item:
         return jsonify({"erro": "Prévia expirada. Carregue o link novamente."}), 404
     cabecalhos = dict(item["headers"])
+    # Evita que compressão HTTP altere o tamanho/offsets dos bytes enviados
+    # ao MediaPlayer, que depende de Content-Length e Range consistentes.
+    cabecalhos["Accept-Encoding"] = "identity"
     faixa = request.headers.get("Range")
     if faixa:
         cabecalhos["Range"] = faixa
@@ -3644,8 +3647,9 @@ def preview_stream(token):
         saida_headers = {"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"}
         for nome in ("Content-Type", "Content-Length", "Content-Range", "Accept-Ranges"):
             valor = upstream.headers.get(nome)
-            if valor:
+            if valor and not upstream.headers.get("Content-Encoding"):
                 saida_headers[nome] = valor
+        saida_headers["Accept-Ranges"] = upstream.headers.get("Accept-Ranges", "bytes")
         if request.method == "HEAD":
             status_code = upstream.status_code
             upstream.close()
