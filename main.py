@@ -517,7 +517,7 @@ def aplicar_marca_dagua(caminho, duracao=None, posicao="inferior_direito", pos_x
     pos_y_frac = pos_y / 100.0
     filtro_video = (
         "[1:v]crop=w='iw*0.84':h='ih*0.84':x='iw*0.08':y='ih*0.08',"
-        "scale=w='min(360\\,iw*0.32)':h=-1,"
+        "scale=w='min(650\\,iw*0.62)':h=-1,"
         "format=rgba,colorchannelmixer=aa=0.92[wm];"
         f"[0:v][wm]overlay=x='(W-w)*{pos_x_frac:.5f}':"
         f"y='(H-h)*{pos_y_frac:.5f}'[outv]"
