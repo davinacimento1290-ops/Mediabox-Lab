@@ -510,14 +510,14 @@ def aplicar_marca_dagua(caminho, duracao=None, posicao="inferior_direito", pos_x
         pos_y = max(0.0, min(100.0, float(pos_y)))
     except (TypeError, ValueError):
         pos_x, pos_y = 88.0, 88.0
-    # Marca proporcional: 12% da largura do vídeo, limitada a 120 px.
+    # Marca maior e proporcional: até 30% da largura do vídeo, limitada a 420 px.
     # As expressões do overlay evitam funções com vírgulas que quebravam o grafo
     # de filtros em algumas builds do FFmpeg.
     pos_x_frac = pos_x / 100.0
     pos_y_frac = pos_y / 100.0
     filtro_video = (
-        "[1:v]scale=w='min(120\\,iw*0.12)':h=-1,"
-        "format=rgba,colorchannelmixer=aa=0.75[wm];"
+        "[1:v]scale=w='min(420\\,iw*0.30)':h=-1,"
+        "format=rgba,colorchannelmixer=aa=0.88[wm];"
         f"[0:v][wm]overlay=x='(W-w)*{pos_x_frac:.5f}':"
         f"y='(H-h)*{pos_y_frac:.5f}'[outv]"
     )
@@ -1335,7 +1335,7 @@ body[data-error-animation="minimal"] #error-intro .intro-effect:before,body[data
 @keyframes errorFade{from{opacity:0}to{opacity:1}}
 @media(max-width:420px){ #error-center{padding:10px}#error-center .error-panel{padding:17px;border-radius:20px}#error-center .error-facts{gap:7px}#error-center .error-fact{padding:9px}#error-center .error-actions{grid-template-columns:1fr}}
 
- .preview-backdrop[hidden]{display:none}.preview-backdrop{position:fixed;inset:0;z-index:9998;background:#02040bdc;display:grid;place-items:center;padding:18px}.preview-dialog{width:min(460px,100%);padding:18px;border:1px solid #344763;border-radius:20px;background:linear-gradient(145deg,#121d30,#0c1321);box-shadow:0 24px 80px #0009}.preview-title{display:flex;align-items:center;justify-content:space-between;gap:12px}.preview-close{width:42px;min-height:40px;padding:8px}.preview-video{position:relative;aspect-ratio:9/16;width:min(100%,320px);max-height:54vh;margin:14px auto;background:#05070c;border:1px solid #40516e;border-radius:13px;overflow:hidden}.preview-video video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}.preview-logo{position:absolute;z-index:3;width:30%;height:auto;max-width:150px;opacity:.86;filter:drop-shadow(0 1px 4px #000b);left:88%;top:88%;transform:translate(-50%,-50%);touch-action:none;cursor:grab;user-select:none;-webkit-user-drag:none}.preview-logo:active{cursor:grabbing}.preview-video{touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none}.preview-video:after{pointer-events:none}.preview-mark{position:absolute;z-index:1;display:flex;flex-direction:column;line-height:1.02;text-align:left;filter:drop-shadow(0 1px 4px #000b);opacity:.86;font-size:10px}.preview-mark small{color:#fff;font-size:.62em;font-style:italic;font-weight:800}.preview-mark b{background:linear-gradient(100deg,#13cfff,#6975ff 55%,#c044ff);background-clip:text;-webkit-background-clip:text;color:transparent;font-size:1.12em;font-weight:950;letter-spacing:.4px}.pos-superior_esquerdo .preview-mark{top:12px;left:12px}.pos-superior_direito .preview-mark{top:12px;right:12px;text-align:right}.pos-inferior_esquerdo .preview-mark{bottom:12px;left:12px}.pos-inferior_direito .preview-mark{bottom:12px;right:12px;text-align:right}
+ .preview-backdrop[hidden]{display:none}.preview-backdrop{position:fixed;inset:0;z-index:9998;background:#02040bdc;display:grid;place-items:center;padding:18px}.preview-dialog{width:min(460px,100%);padding:18px;border:1px solid #344763;border-radius:20px;background:linear-gradient(145deg,#121d30,#0c1321);box-shadow:0 24px 80px #0009}.preview-title{display:flex;align-items:center;justify-content:space-between;gap:12px}.preview-close{width:42px;min-height:40px;padding:8px}.preview-video{position:relative;aspect-ratio:9/16;width:min(100%,320px);max-height:54vh;margin:14px auto;background:#05070c;border:1px solid #40516e;border-radius:13px;overflow:hidden}.preview-video video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}.preview-logo{position:absolute;z-index:3;width:34%;height:auto;max-width:220px;opacity:.92;filter:drop-shadow(0 1px 5px #000c);left:88%;top:88%;transform:translate(-50%,-50%);touch-action:none;cursor:grab;user-select:none;-webkit-user-drag:none}.preview-logo:active{cursor:grabbing}.preview-video{touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none}.preview-video:after{pointer-events:none}.preview-mark{position:absolute;z-index:1;display:flex;flex-direction:column;line-height:1.02;text-align:left;filter:drop-shadow(0 1px 4px #000b);opacity:.86;font-size:10px}.preview-mark small{color:#fff;font-size:.62em;font-style:italic;font-weight:800}.preview-mark b{background:linear-gradient(100deg,#13cfff,#6975ff 55%,#c044ff);background-clip:text;-webkit-background-clip:text;color:transparent;font-size:1.12em;font-weight:950;letter-spacing:.4px}.pos-superior_esquerdo .preview-mark{top:12px;left:12px}.pos-superior_direito .preview-mark{top:12px;right:12px;text-align:right}.pos-inferior_esquerdo .preview-mark{bottom:12px;left:12px}.pos-inferior_direito .preview-mark{bottom:12px;right:12px;text-align:right}
 
 /* Editor secreto local: não persiste e não envia alterações */
 #mb-local-editor[hidden]{display:none}
@@ -1832,6 +1832,60 @@ style="display:block;text-align:center;text-decoration:none;padding:14px;border-
 
 
 const $=x=>document.getElementById(x);let timer=null;
+
+// Downloads no próprio app: busca o arquivo sem navegar para /arquivo/ no WebView.
+document.addEventListener("click",async evento=>{
+ const link=evento.target instanceof Element?evento.target.closest("#download-link,.queue-link"):null;
+ if(!link)return;
+ evento.preventDefault();
+ if(link.dataset.mbDownloadBusy==="1")return;
+ const href=link.getAttribute("href");
+ if(!href||href==="#")return;
+ const textoOriginal=link.textContent;
+ link.dataset.mbDownloadBusy="1";
+ link.setAttribute("aria-busy","true");
+ link.textContent="Preparando arquivo...";
+ try{
+  const resposta=await fetch(href,{method:"GET",credentials:"same-origin",cache:"no-store"});
+  if(!resposta.ok){
+   let detalhe="";
+   try{const dados=await resposta.json();detalhe=dados.erro||dados.detail||""}catch(_){}
+   throw new Error(detalhe||"O servidor respondeu HTTP "+resposta.status+".");
+  }
+  const arquivo=await resposta.blob();
+  if(!arquivo.size)throw new Error("O servidor retornou um arquivo vazio.");
+  const disposicao=resposta.headers.get("Content-Disposition")||"";
+  let nome="";
+  const utf8=disposicao.match(/filename\\*\\s*=\\s*UTF-8''([^;]+)/i);
+  if(utf8){try{nome=decodeURIComponent(utf8[1].trim().replace(/^"|"$/g,""))}catch(_){}}
+  if(!nome){
+   const simples=disposicao.match(/filename\\s*=\\s*"?([^";]+)"?/i);
+   if(simples)nome=simples[1].trim();
+  }
+  if(!nome){
+   const caminho=new URL(href,window.location.href).pathname;
+   nome=decodeURIComponent(caminho.substring(caminho.lastIndexOf("/")+1)||"video.mp4");
+  }
+  const objetoUrl=URL.createObjectURL(arquivo);
+  const salvar=document.createElement("a");
+  salvar.href=objetoUrl;
+  salvar.download=nome;
+  salvar.style.display="none";
+  document.body.appendChild(salvar);
+  salvar.click();
+  salvar.remove();
+  window.setTimeout(()=>URL.revokeObjectURL(objetoUrl),60000);
+  if($("status"))$("status").textContent="Arquivo preparado para salvar no dispositivo.";
+  if($("queue-feedback")&&link.classList.contains("queue-link"))$("queue-feedback").textContent="Arquivo preparado para salvar no dispositivo.";
+ }catch(erro){
+  if($("err")&&link.id==="download-link")$("err").textContent=erro.message||"Falha ao preparar o download.";
+  if(typeof mostrarErroCentral==="function")mostrarErroCentral(erro.message||"Falha ao preparar o download.",{codigo:"DOWNLOAD-INAPP-001",origem:"Download dentro do MEDIABOX"});
+ }finally{
+  delete link.dataset.mbDownloadBusy;
+  link.removeAttribute("aria-busy");
+  if(link.isConnected)link.textContent=textoOriginal;
+ }
+});
 (function iniciarMEDIABOXApp(){
  const main=document.querySelector("main");
  const top=main&&main.querySelector(".topline");
