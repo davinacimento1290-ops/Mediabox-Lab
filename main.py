@@ -3565,11 +3565,17 @@ def preview_link():
                                 "media_url": url_for("preview_stream", token=token_stream)})
             resposta.headers["Cache-Control"] = "no-store"
             return resposta
+        plataforma_preview = detectar(url)
+        formato_preferido = (
+            "best[ext=mp4][vcodec!=none][acodec!=none]/"
+            "best[ext=mp4][vcodec!=none]/"
+            "best[protocol^=http][vcodec!=none][acodec!=none]/"
+            "best[protocol^=http][vcodec!=none]/best"
+        )
         opcoes = {
             "quiet": True, "no_warnings": True, "noplaylist": True,
-            "skip_download": True,
-            "format": "best[ext=mp4][vcodec!=none][acodec!=none]/best[ext=mp4]/best",
-            "socket_timeout": 18, "extractor_retries": 1, "retries": 1,
+            "skip_download": True, "format": formato_preferido,
+            "socket_timeout": 25, "extractor_retries": 2, "retries": 2,
         }
         with yt_dlp.YoutubeDL(opcoes) as ydl:
             info = ydl.extract_info(url, download=False)
@@ -3577,15 +3583,49 @@ def preview_link():
             info = next((item for item in info["entries"] if item), None)
         if not info:
             return jsonify({"erro": "A plataforma não retornou um vídeo reproduzível."}), 422
-        media_url = info.get("url")
+
+        media_url = None
+        formatos = [item for item in info.get("formats", [])
+                    if item.get("url")
+                    and item.get("vcodec") not in (None, "none")
+                    and urlparse(item.get("url", "")).scheme in {"http", "https"}]
+        if plataforma_preview == "instagram":
+            # Instagram pode listar primeiro um formato sem áudio ou um manifesto.
+            # Para o VideoView, priorizamos um arquivo MP4 progressivo com áudio.
+            mp4_com_audio = [
+                item for item in formatos
+                if item.get("ext") == "mp4"
+                and item.get("acodec") not in (None, "none")
+                and item.get("protocol") in ("https", "http")
+            ]
+            progressivos_com_audio = [
+                item for item in formatos
+                if item.get("acodec") not in (None, "none")
+                and item.get("protocol") in ("https", "http")
+            ]
+            candidatos = mp4_com_audio or progressivos_com_audio
+            if candidatos:
+                escolhido = max(
+                    candidatos,
+                    key=lambda item: (
+                        item.get("height") or 0,
+                        item.get("tbr") or 0,
+                        item.get("filesize") or item.get("filesize_approx") or 0
+                    )
+                )
+                media_url = escolhido.get("url")
+
         if not media_url:
-            formatos = [item for item in info.get("formats", [])
-                        if item.get("url") and item.get("vcodec") != "none"
-                        and item.get("acodec") != "none"]
-            formatos_mp4 = [item for item in formatos if item.get("ext") == "mp4"]
-            candidatos = formatos_mp4 or formatos
+            media_url = info.get("url")
+        if not media_url:
+            formatos_com_audio = [item for item in formatos
+                                  if item.get("acodec") not in (None, "none")]
+            formatos_mp4 = [item for item in formatos_com_audio
+                            if item.get("ext") == "mp4"]
+            candidatos = formatos_mp4 or formatos_com_audio or formatos
             if candidatos:
                 media_url = candidatos[-1].get("url")
+
         if not media_url or urlparse(media_url).scheme not in {"http", "https"}:
             return jsonify({"erro": "A plataforma não forneceu um fluxo direto compatível com a prévia."}), 422
         validar_url(media_url)
@@ -3594,7 +3634,15 @@ def preview_link():
         cabecalhos_permitidos = {"User-Agent", "Referer", "Accept", "Accept-Language"}
         cabecalhos_stream = {k: str(v) for k, v in cabecalhos_origem.items()
                              if k in cabecalhos_permitidos}
-        cabecalhos_stream.setdefault("User-Agent", "Mozilla/5.0")
+        if plataforma_preview == "instagram":
+            cabecalhos_stream.setdefault(
+                "User-Agent",
+                "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"
+            )
+            cabecalhos_stream["Referer"] = url
+        else:
+            cabecalhos_stream.setdefault("User-Agent", "Mozilla/5.0")
         agora = time.time()
         with preview_stream_lock:
             expirados = [chave for chave, item in preview_streams.items()
