@@ -60,7 +60,7 @@ jobs:
           checks = [
               ("/", 200),
               ("/matematica", 200),
-              ("/captcha/novo", 200),
+              ("/status", 200),
           ]
 
           for path, expected in checks:
