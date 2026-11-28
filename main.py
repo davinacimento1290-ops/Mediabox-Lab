@@ -3718,9 +3718,15 @@ def start():
         formato = d.get("formato", "mp4")
         plataforma = d.get("plataforma", "auto")
         marca_dagua = d.get("marca_dagua", False) is True
+        # O campo marca_tipo também recebe "nao" quando o usuário escolhe
+        # baixar sem marca. Esse valor só é relevante quando a marca está ativa.
         marca_tipo = d.get("marca_tipo", "dias_edits")
-        if marca_tipo not in {"dias_edits", "mediabox"}:
-            return jsonify({"erro": "Tipo de marca d'água inválido."}), 400
+        if marca_dagua:
+            if marca_tipo not in {"dias_edits", "mediabox"}:
+                return jsonify({"erro": "Tipo de marca d'água inválido."}), 400
+        else:
+            # Mantém um tipo interno válido, sem aplicar nenhuma imagem ao vídeo.
+            marca_tipo = "dias_edits"
         posicao_marca = d.get("posicao_marca", "inferior_direito")
         marca_x = max(0.0, min(100.0, float(d.get("marca_x", 88))))
         marca_y = max(0.0, min(100.0, float(d.get("marca_y", 88))))
