@@ -1952,7 +1952,7 @@ document.addEventListener("click",async evento=>{
  const equalizerLink=document.createElement("section");
  equalizerLink.className="card";
  equalizerLink.innerHTML='<div class="section-head"><div class="section-icon">🎚️</div><div><h2>Equalizador de áudio</h2><p>Equalizador PRO de 10 bandas, prévia e exportação.</p></div></div><a class="primary" href="/ferramentas/equalizador" style="display:block;text-align:center;text-decoration:none;padding:15px;border-radius:14px">Abrir Equalizador PRO</a>';
- addPage("ferramentas","Ferramentas",[toolsIntro,browser,equalizerLink,legal,footer]);
+ addPage("ferramentas","Ferramentas",[toolsIntro,maths,browser,equalizerLink,legal,footer]);
  if(accountControls)accountControls.classList.add("bv-account-actions");
  addPage("conta","Conta e conquistas",[accountIntro,settingsButton,accountControls,accountLinks]);
  const reviewCard=document.createElement("section");reviewCard.className="card";reviewCard.id="bv-reviews";
