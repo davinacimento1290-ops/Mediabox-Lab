@@ -668,9 +668,10 @@ def baixar(url, formato, plataforma, usuario="desconhecido", marca_dagua=False, 
                     "player_client": ["android_vr"]
                 }
             }
-            opcoes["socket_timeout"] = 20
-            opcoes["retries"] = 1
-            opcoes["fragment_retries"] = 1
+            # Mesmos parâmetros de conexão do código funcional do Pydroid 3.
+            opcoes["socket_timeout"] = 30
+            opcoes["retries"] = 5
+            opcoes["fragment_retries"] = 5
             if formato == "mp4":
                 opcoes["format"] = "best"
 
