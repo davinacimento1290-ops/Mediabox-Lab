@@ -1856,10 +1856,10 @@ document.addEventListener("click",async evento=>{
   if(!arquivo.size)throw new Error("O servidor retornou um arquivo vazio.");
   const disposicao=resposta.headers.get("Content-Disposition")||"";
   let nome="";
-  const utf8=disposicao.match(/filename\\*\\s*=\\s*UTF-8''([^;]+)/i);
+  const utf8=disposicao.match(/filename\*\s*=\s*UTF-8''([^;]+)/i);
   if(utf8){try{nome=decodeURIComponent(utf8[1].trim().replace(/^"|"$/g,""))}catch(_){}}
   if(!nome){
-   const simples=disposicao.match(/filename\\s*=\\s*"?([^";]+)"?/i);
+   const simples=disposicao.match(/filename\s*=\s*"?([^";]+)"?/i);
    if(simples)nome=simples[1].trim();
   }
   if(!nome){
