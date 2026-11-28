@@ -21,6 +21,8 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -148,6 +150,28 @@ public class MainActivity extends Activity {
         root.addView(errorView, new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
+        TextView floatingButton = new TextView(this);
+        floatingButton.setText("M");
+        floatingButton.setTextColor(Color.rgb(103, 232, 249));
+        floatingButton.setTextSize(20);
+        floatingButton.setTypeface(null, android.graphics.Typeface.BOLD);
+        floatingButton.setGravity(Gravity.CENTER);
+        floatingButton.setContentDescription("Ativar bolinha flutuante MEDIABOX");
+        GradientDrawable floatingBackground = new GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            new int[]{Color.rgb(22, 49, 83), Color.rgb(25, 17, 55)}
+        );
+        floatingBackground.setShape(GradientDrawable.OVAL);
+        floatingBackground.setStroke(dp(2), Color.rgb(72, 205, 255));
+        floatingButton.setBackground(floatingBackground);
+        floatingButton.setElevation(dp(8));
+        FrameLayout.LayoutParams floatingParams = new FrameLayout.LayoutParams(
+            dp(58), dp(58), Gravity.BOTTOM | Gravity.END
+        );
+        floatingParams.setMargins(0, 0, dp(18), dp(24));
+        floatingButton.setOnClickListener(v -> ativarBolinhaFlutuante());
+        root.addView(floatingButton, floatingParams);
+
         setContentView(root);
         if (savedInstanceState != null) webView.restoreState(savedInstanceState);
         else webView.loadUrl(HOME_URL);
@@ -205,6 +229,38 @@ public class MainActivity extends Activity {
             } else {
                 Toast.makeText(this, "Permissão necessária para salvar na pasta Downloads.", Toast.LENGTH_LONG).show();
                 pendingDownload = null;
+            }
+        }
+    }
+
+    private int dp(float value) {
+        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private void ativarBolinhaFlutuante() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            Toast.makeText(this, "Autorize a sobreposição para ativar a bolinha MEDIABOX.", Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + getPackageName())
+            );
+            startActivityForResult(intent, 4105);
+            return;
+        }
+        Intent service = new Intent(this, FloatingOverlayService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(service);
+        else startService(service);
+        Toast.makeText(this, "Bolinha flutuante MEDIABOX ativada.", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 4105) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)) {
+                ativarBolinhaFlutuante();
+            } else {
+                Toast.makeText(this, "A permissão de sobreposição não foi concedida.", Toast.LENGTH_LONG).show();
             }
         }
     }
