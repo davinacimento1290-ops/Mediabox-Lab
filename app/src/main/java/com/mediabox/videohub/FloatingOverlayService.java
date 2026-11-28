@@ -373,7 +373,7 @@ public class FloatingOverlayService extends Service {
         EditText answer = new EditText(this);
         answer.setSingleLine(true);
         answer.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-        new AlertDialog.Builder(this)
+        AlertDialog dialog = new AlertDialog.Builder(this)
             .setTitle("Verificação MEDIABOX")
             .setMessage(question)
             .setView(answer)
@@ -404,7 +404,16 @@ public class FloatingOverlayService extends Service {
                         handler.post(() -> setBusy(false, e.getMessage()));
                     }
                 });
-            }).show();
+            }).create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setType(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                : WindowManager.LayoutParams.TYPE_PHONE);
+            dialog.getWindow().setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+            );
+        }
+        dialog.show();
     }
 
     private JSONObject requestJson(String method, String path, JSONObject body) throws Exception {
@@ -499,7 +508,6 @@ public class FloatingOverlayService extends Service {
     }
 
     private void closePanel() {
-        handler.removeCallbacks(pollStatus);
         if (videoPreview != null) {
             videoPreview.stopPlayback();
             videoPreview = null;
