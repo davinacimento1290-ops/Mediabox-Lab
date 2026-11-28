@@ -21,6 +21,7 @@ import android.os.Looper;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.content.ContentValues;
@@ -29,6 +30,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.VideoView;
 import android.widget.MediaController;
@@ -63,7 +65,7 @@ public class FloatingOverlayService extends Service {
     private Button downloadButton;
     private VideoView videoPreview;
     private boolean panelOpen;
-    private boolean downloadRunning;
+    private volatile boolean downloadRunning;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final ExecutorService network = Executors.newSingleThreadExecutor();
     private final Runnable pollStatus = new Runnable() {
@@ -296,9 +298,17 @@ public class FloatingOverlayService extends Service {
         previewButton.setOnClickListener(v -> carregarPrevia());
         downloadButton.setOnClickListener(v -> iniciarFluxoDownload());
 
-        panel = card;
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
+        scroll.setClipToPadding(true);
+        scroll.setVerticalScrollBarEnabled(true);
+        scroll.addView(card, new ScrollView.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+        panel = scroll;
         int width = Math.min(getResources().getDisplayMetrics().widthPixels - dp(20), dp(430));
-        int height = dp(390);
+        int availableHeight = getResources().getDisplayMetrics().heightPixels - dp(100);
+        int height = Math.min(Math.max(dp(300), availableHeight), dp(620));
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
             width, height,
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
@@ -328,20 +338,31 @@ public class FloatingOverlayService extends Service {
                 handler.post(() -> {
                     if (!panelOpen || videoPreview == null) return;
                     titleText.setText(title);
-                    videoPreview.setVideoURI(Uri.parse(mediaUrl));
                     MediaController controls = new MediaController(this);
                     controls.setAnchorView(videoPreview);
                     videoPreview.setMediaController(controls);
                     videoPreview.setOnPreparedListener(mp -> {
                         mp.setVolume(0f, 0f);
+                        int videoWidth = mp.getVideoWidth();
+                        int videoHeight = mp.getVideoHeight();
+                        if (videoWidth > 0 && videoHeight > 0) {
+                            int availableWidth = Math.max(dp(180),
+                                getResources().getDisplayMetrics().widthPixels - dp(64));
+                            int targetHeight = Math.round(availableWidth * (videoHeight / (float) videoWidth));
+                            targetHeight = Math.max(dp(110), Math.min(dp(230), targetHeight));
+                            LinearLayout.LayoutParams videoParams =
+                                (LinearLayout.LayoutParams) videoPreview.getLayoutParams();
+                            videoParams.height = targetHeight;
+                            videoPreview.setLayoutParams(videoParams);
+                        }
                         videoPreview.start();
-                        setStatus("Prévia carregada. Confira antes de baixar.");
+                        setBusy(false, "Prévia carregada. Confira antes de baixar.");
                     });
                     videoPreview.setOnErrorListener((mp, what, extra) -> {
-                        setStatus("A plataforma não permitiu reproduzir a prévia neste aparelho.");
+                        setBusy(false, "Não foi possível reproduzir esta prévia. Tente baixar o vídeo diretamente.");
                         return true;
                     });
-                    setBusy(false, "Carregando reprodução...");
+                    videoPreview.setVideoURI(Uri.parse(mediaUrl));
                 });
             } catch (Exception e) {
                 handler.post(() -> setBusy(false, e.getMessage()));
@@ -418,11 +439,14 @@ public class FloatingOverlayService extends Service {
     }
 
     private void updateDownloadState(JSONObject state) {
-        if (!panelOpen) return;
         int percent = state.optInt("progresso", 0);
-        if (progressBar != null) progressBar.setProgress(Math.max(0, Math.min(100, percent)));
         String message = state.optString("status", "Processando vídeo...");
-        if (statusText != null) statusText.setText(message + "  " + percent + "%");
+        if (panelOpen && progressBar != null) {
+            progressBar.setProgress(Math.max(0, Math.min(100, percent)));
+        }
+        if (panelOpen && statusText != null) {
+            statusText.setText(message + "  " + percent + "%");
+        }
         if (state.optBoolean("ativo", false)) return;
         String error = state.optString("erro", "");
         String downloadUrl = state.optString("download_url", "");
@@ -449,7 +473,19 @@ public class FloatingOverlayService extends Service {
                 DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
                 if (manager == null) throw new IllegalStateException("Gerenciador de downloads indisponível.");
                 manager.enqueue(request);
-                setStatus("Download salvo na pasta Downloads. 🟢");
+                setStatus("Download enviado para a pasta Downloads. 🟢");
+                NotificationManager notifications =
+                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                if (notifications != null) {
+                    Notification.Builder notice = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                        ? new Notification.Builder(this, CHANNEL_ID)
+                        : new Notification.Builder(this);
+                    notice.setSmallIcon(android.R.drawable.stat_sys_download_done)
+                        .setContentTitle("MEDIABOX: vídeo pronto")
+                        .setContentText("O arquivo foi enviado para Downloads.")
+                        .setAutoCancel(true);
+                    notifications.notify(NOTIFICATION_ID, notice.build());
+                }
             } catch (Exception e) {
                 setStatus("Vídeo pronto, mas não foi possível salvar: " + e.getMessage());
             }
