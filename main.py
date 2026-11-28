@@ -652,17 +652,11 @@ def baixar(url, formato, plataforma, usuario="desconhecido", marca_dagua=False, 
         # Não sobrescrever o User-Agent: ele precisa combinar com a impressão TLS
         # do navegador simulada pelo curl_cffi.
 
-        # YouTube: recupera somente o perfil usado no primeiro teste do MEDIABOX 2.
-        # Mantém a captura de logs do MEDIABOX e não altera as outras plataformas.
+        # YouTube: mantém os clientes padrão da versão instalada do yt-dlp.
+        # Não força perfis antigos nem tenta contornar verificações de acesso.
         if real == "youtube":
             logger_youtube = YouTubeLogCapture(log)
             opcoes["logger"] = logger_youtube
-            opcoes["extractor_args"] = {
-                "youtube": {
-                    "player_client": ["android_vr"]
-                }
-            }
-            # Mesmos parâmetros de conexão do código funcional do Pydroid 3.
             opcoes["socket_timeout"] = 30
             opcoes["retries"] = 5
             opcoes["fragment_retries"] = 5
