@@ -1,4 +1,4 @@
-# BLUEVISION - central de vídeos para Android e navegador
+# MEDIABOX - central de vídeos para Android e navegador
 # O programa tenta instalar Flask, yt-dlp e requests se estiverem ausentes.
 
 import os, re, sys, json, time, logging, threading, ipaddress, subprocess, html, secrets, hmac, base64, ast, shutil, tempfile
@@ -23,7 +23,7 @@ import imageio_ffmpeg
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, request, jsonify, render_template_string, session, redirect, url_for, send_from_directory, Response, stream_with_context
 
-APP_NAME = "BLUEVISION"
+APP_NAME = "MEDIABOX"
 PORTA = int(os.environ.get("PORT", "5000"))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -45,7 +45,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler(ARQUIVO_LOG, encoding="utf-8"),
               logging.StreamHandler()]
 )
-log = logging.getLogger("BLUEVISION")
+log = logging.getLogger("MEDIABOX")
 app = Flask(__name__)
 AUTH_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mediabox_auth.json")
 SECRET_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mediabox_session.key")
@@ -109,7 +109,7 @@ admin_control.inicializar(
 validar_usuario = admin_control.validar_usuario
 registrar_evento = admin_control.registrar_evento
 
-# Sistemas BlueVision: conquistas por usuário e prévia avançada local.
+# Sistemas MEDIABOX: conquistas por usuário e prévia avançada local.
 import mediabox_achievements_preview
 import bluevision_reviews
 bluevision_reviews.register(app, os.path.join(BASE_DIR, "mediabox_admin.sqlite3"), log, registrar_evento)
@@ -407,7 +407,7 @@ def baixar_kwai(url):
         video_req.close()
         raise RuntimeError("O Kwai devolveu uma página HTML em vez do arquivo de vídeo.")
 
-    # Salva na pasta configurada pelo BlueVision.
+    # Salva na pasta configurada pelo MEDIABOX.
     caminho_arquivo = os.path.join(PASTA, nome_seguro(titulo_video) + ".mp4")
     raiz, ext = os.path.splitext(caminho_arquivo)
     contador = 1
@@ -874,7 +874,7 @@ def processar_fila_downloads(usuario):
                     item.get("marca_y", 88)
                 )
             except Exception as exc:
-                log.exception("Erro inesperado no item da fila BlueVision")
+                log.exception("Erro inesperado no item da fila MEDIABOX")
                 atualizar(ativo=False, status="Download da fila falhou.", erro=str(exc)[:500])
 
             with lock:
@@ -916,7 +916,7 @@ def processar_fila_downloads(usuario):
                 fila_current_id = None
 
     except Exception as exc:
-        log.exception("Falha geral no gerenciador de fila BlueVision")
+        log.exception("Falha geral no gerenciador de fila MEDIABOX")
         with lock:
             atual = next(
                 (x for x in fila_downloads if x.get("id") == fila_current_id),
@@ -1183,9 +1183,9 @@ def pesquisar_instagram(usuario):
     }
 
 HTML = r"""<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="application-name" content="BLUEVISION"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/brand/bluevision-mark.svg" type="image/svg+xml">
-<meta name="theme-color" content="#080b14"><meta name="description" content="BlueVision — downloads e ferramentas de vídeo em um só lugar.">
-<title>BlueVision — Video Studio</title><style>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="application-name" content="MEDIABOX"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/brand/bluevision-mark.svg" type="image/svg+xml">
+<meta name="theme-color" content="#080b14"><meta name="description" content="MEDIABOX — downloads e ferramentas de vídeo em um só lugar.">
+<title>MEDIABOX — Video Studio</title><style>
 :root{color-scheme:dark;--bg:#080b14;--panel:#101625;--panel2:#0c1220;--line:#263148;--text:#f4f7ff;--muted:#96a4bd;--cyan:#63e6e2;--blue:#6e8cff;--pink:#b18aff;--danger:#ff8294}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -15%,#1d2c50 0,transparent 48%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;line-height:1.5}
 main{width:min(920px,92%);margin:0 auto;padding:26px 0 22px}.topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:38px}.brand{display:flex;align-items:center;gap:12px}.brand-mark{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--cyan),var(--blue) 62%,var(--pink));color:#07101b;font-weight:950;font-size:16px;letter-spacing:-1px;box-shadow:0 8px 30px #63e6e222}.brand-name{font-size:18px;font-weight:850;letter-spacing:1.4px}.brand-sub{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}.pill{border:1px solid #2a3c52;border-radius:999px;padding:7px 11px;color:#b9c8df;font-size:11px;letter-spacing:.7px;text-transform:uppercase;background:#0d1421}
@@ -1194,7 +1194,7 @@ main{width:min(920px,92%);margin:0 auto;padding:26px 0 22px}.topline{display:fle
 label{display:block;color:#bdc9dc;font-size:12px;font-weight:650;margin:0 0 8px}input,select,button{width:100%;padding:14px;border-radius:12px;border:1px solid #2b3850;background:#090f1b;color:var(--text);font:inherit;outline:none;transition:border-color .18s,box-shadow .18s,transform .18s}input::placeholder{color:#62718b}input:focus,select:focus{border-color:#6e8cff;box-shadow:0 0 0 3px #6e8cff20}.field{margin-bottom:15px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.primary{background:linear-gradient(105deg,#62dedc,#83a0ff 65%,#ad8bff);border:0;color:#08101c;font-weight:850;cursor:pointer;box-shadow:0 8px 25px #728eff22}.primary:hover{filter:brightness(1.07);transform:translateY(-1px)}button:disabled{opacity:.55;cursor:wait;transform:none}.secondary{background:#121b2a;border:1px solid #34435c;color:#dce7f9;font-weight:700;cursor:pointer}.secondary:hover{border-color:#6e8cff}.status{color:#c3cee0;margin-top:14px;overflow-wrap:anywhere;font-size:13px}.bar{height:7px;background:#252f43;border-radius:99px;overflow:hidden;margin-top:10px}.fill{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--blue),var(--pink));border-radius:99px;transition:width .25s}.error{color:var(--danger);white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;margin-top:9px}.results{display:grid;gap:10px;margin-top:13px}.item{background:#0a111e;border:1px solid #28354b;border-radius:14px;padding:14px;overflow-wrap:anywhere}.item a{color:var(--cyan);font-size:13px;text-decoration:none}.item a:hover{text-decoration:underline}.item button{margin-top:10px}.small{font-size:11px;color:#8292ad;line-height:1.7}.path-note{margin:13px 0 0;padding:11px 13px;border:1px solid #243149;border-radius:12px;background:#0b111d}.path-note strong{color:#dce7fa;font-weight:650}.footer{border-top:1px solid #202a3c;margin-top:28px;padding:20px 8px 6px;text-align:center;color:#8290a9;font-size:11px}.footer strong{color:#c8d4e8;font-weight:700}.legal{max-width:600px;margin:8px auto 0}.muted{color:var(--muted)}
 @media(max-width:560px){main{width:92%;padding-top:17px}.topline{margin-bottom:24px}.brand-mark{width:40px;height:40px}.hero{padding:28px 16px 30px;border-radius:21px}.hero h1{letter-spacing:-1.5px}.card{padding:17px;border-radius:18px}.grid{grid-template-columns:1fr;gap:0}.pill{font-size:9px;padding:6px 8px}}
 
-/* BLUEVISION UI refresh */
+/* MEDIABOX UI refresh */
 :root{--bg:#070a12;--panel:#111a2b;--line:#293954;--cyan:#70f0e6;--blue:#7b9cff;--pink:#c09aff}
 body{background:radial-gradient(ellipse at 10% 0%,#183b54 0,transparent 36%),radial-gradient(ellipse at 95% 12%,#35205a 0,transparent 30%),var(--bg);background-attachment:fixed}
 main{width:min(980px,94%);padding-top:24px}
@@ -1434,7 +1434,7 @@ body.mb-overlay-open{overflow:hidden}
 @media(max-width:560px){ #mb-settings{padding:8px;align-items:end} #mb-settings .mb-settings-dialog{max-height:94vh;padding:15px;border-radius:22px 22px 17px 17px} #mb-settings .mb-settings-head h2{font-size:20px} #mb-settings .mb-error-options{grid-template-columns:1fr 1fr;gap:7px} #mb-settings .mb-error-option{padding:8px} #mb-settings .mb-error-swatch{height:43px} #mb-settings .mb-error-option strong{font-size:11px} #mb-settings .mb-error-option small{font-size:9px} #mb-settings .mb-command-row{flex-direction:column} #mb-settings .mb-command-row button{width:100%;min-height:43px} }
 @media(max-width:370px){ #mb-settings .mb-error-options,#mb-settings .mb-command-grid{grid-template-columns:1fr} }
 
-/* BLUEVISION — layout de aplicativo mobile */
+/* MEDIABOX — layout de aplicativo mobile */
 :root{--bv-accent:#70f0e6;--bv-blue:#7b9cff;--bv-violet:#c09aff}
 main{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .bv-pages{min-height:50vh}
@@ -1464,7 +1464,7 @@ main{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 #bv-nav{width:calc(100% - 14px);padding:6px 5px;border-radius:20px}#bv-nav button{min-height:58px;font-size:8px}.bv-shortcut-grid{gap:8px}.bv-shortcut{padding:10px;gap:8px}.bv-shortcut-icon{width:34px;height:34px;flex-basis:34px}}
 @media(prefers-reduced-motion:reduce){.bv-page:not([hidden]){animation:none}.bv-shortcut:active{transform:none}}
 
-/* BLUEVISION ANDROID APP SHELL */
+/* MEDIABOX ANDROID APP SHELL */
 html,body{width:100%;max-width:100%;min-height:100%;margin:0;background:#070a12;overscroll-behavior-y:contain}
 html{scroll-padding-top:90px;-webkit-text-size-adjust:100%}
 body{min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;touch-action:pan-y;background:radial-gradient(ellipse at 12% 0%,#173b55 0,transparent 38%),radial-gradient(ellipse at 100% 10%,#38245c 0,transparent 30%),#070a12}
@@ -1504,7 +1504,7 @@ input,select,button{min-height:48px;border-radius:14px}input,select,textarea{fon
 @media(prefers-reduced-motion:reduce){.bv-page:not([hidden]),.bv-shortcut{animation:none!important;transition:none!important}}
 
 
-/* BLUEVISION — NATIVE ANDROID APP EXPERIENCE */
+/* MEDIABOX — NATIVE ANDROID APP EXPERIENCE */
 html,body{width:100%;max-width:100%;min-height:100%;margin:0;background:#070b14;overscroll-behavior-y:contain;-webkit-text-size-adjust:100%}
 body{min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;touch-action:pan-y;background:radial-gradient(ellipse at 12% 0%,#173b55 0,transparent 38%),radial-gradient(ellipse at 100% 10%,#38245c 0,transparent 30%),#070b14}
 main{display:block;width:100%;max-width:760px;min-height:100vh;min-height:100dvh;margin:0 auto;padding:0 16px calc(94px + env(safe-area-inset-bottom));border:0;border-radius:0;overflow:visible;background:linear-gradient(180deg,#0a1220a8 0,transparent 220px);box-shadow:none}
@@ -1544,7 +1544,7 @@ button{min-height:48px;border-radius:13px;touch-action:manipulation}.primary{bac
 @media(prefers-reduced-motion:reduce){.bv-page:not([hidden]),.bv-shortcut{animation:none!important;transition:none!important}}
 
 
-/* BLUEVISION MOBILE WEB REDESIGN — experiência do site dentro do WebToApp */
+/* MEDIABOX MOBILE WEB REDESIGN — experiência do site dentro do WebToApp */
 :root{color-scheme:dark;--bv-bg:#070b14;--bv-panel:#111d30;--bv-line:#2b405c;--bv-cyan:#78f2e8;--bv-blue:#83a2ff;--bv-purple:#b99aff}
 html,body{width:100%;max-width:100%;min-height:100%;margin:0;background:var(--bv-bg);overscroll-behavior-y:contain;-webkit-text-size-adjust:100%}
 body{min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;background:radial-gradient(ellipse at 12% 0%,#17445a 0,transparent 38%),radial-gradient(ellipse at 100% 12%,#39265c 0,transparent 32%),#070b14}
@@ -1620,7 +1620,7 @@ button{min-height:48px;border-radius:13px;touch-action:manipulation}button:activ
 </style></head><body><main>
 <div id="error-intro" hidden aria-live="assertive" aria-label="Animação de diagnóstico">
   <div class="intro-card">
-    <div class="intro-kicker">BLUEVISION · SISTEMA DE DIAGNÓSTICO</div>
+    <div class="intro-kicker">MEDIABOX · SISTEMA DE DIAGNÓSTICO</div>
     <div id="intro-icon" class="intro-icon" aria-hidden="true"></div>
     <h2 id="intro-title">Ops! Detectamos algo</h2>
     <p id="intro-message">Detectando a origem e preparando verificações reais...</p>
@@ -1633,7 +1633,7 @@ button{min-height:48px;border-radius:13px;touch-action:manipulation}button:activ
 </div>
 <div id="error-center" hidden role="alertdialog" aria-modal="true" aria-labelledby="error-title">
   <section class="error-panel">
-    <div class="error-top"><span class="error-brand">BLUEVISION · DIAGNÓSTICO</span><span class="error-status">FALHA IDENTIFICADA</span></div>
+    <div class="error-top"><span class="error-brand">MEDIABOX · DIAGNÓSTICO</span><span class="error-status">FALHA IDENTIFICADA</span></div>
     <div id="error-symbol" class="error-symbol" aria-hidden="true">⚠</div>
     <h2 id="error-title">Não foi possível concluir</h2>
     <p id="error-message" class="error-summary">Ocorreu um problema durante esta operação.</p>
@@ -1651,7 +1651,7 @@ button{min-height:48px;border-radius:13px;touch-action:manipulation}button:activ
     <div class="error-actions">
       <button type="button" class="error-copy" id="error-copy">Copiar diagnóstico</button>
       <button type="button" class="secondary" id="error-history-toggle">Histórico (0)</button>
-      <button type="button" class="primary" onclick="fecharErroCentral()">Voltar ao BLUEVISION</button>
+      <button type="button" class="primary" onclick="fecharErroCentral()">Voltar ao MEDIABOX</button>
     </div>
     <section id="error-history" class="error-history" hidden>
       <div class="error-history-head"><span>DIAGNÓSTICOS RECENTES</span><button type="button" class="secondary" id="error-history-clear">Limpar histórico</button></div>
@@ -1659,13 +1659,13 @@ button{min-height:48px;border-radius:13px;touch-action:manipulation}button:activ
     </section>
   </section>
 </div>
-<div class="topline"><div class="brand"><img class="brand-mark" src="/brand/bluevision-mark.svg" alt="BlueVision"><div><div class="brand-name">BLUEVISION</div><div class="brand-sub">VIDEO STUDIO</div></div></div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><a class="pill" href="/admin" style="text-decoration:none">🔐 ADMIN CONTROL</a></div></div>
+<div class="topline"><div class="brand"><img class="brand-mark" src="/brand/bluevision-mark.svg" alt="MEDIABOX"><div><div class="brand-name">MEDIABOX</div><div class="brand-sub">VIDEO STUDIO</div></div></div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><a class="pill" href="/admin" style="text-decoration:none">🔐 ADMIN CONTROL</a></div></div>
 
 
 <div id="mb-settings" hidden>
  <section class="mb-settings-dialog" role="dialog" aria-modal="true" aria-labelledby="mb-settings-title">
   <header class="mb-settings-head">
-   <div class="mb-settings-brand"><span class="mb-settings-mark">BV</span><div><small>BLUEVISION · PAINEL RÁPIDO</small><h2 id="mb-settings-title">Configurações</h2><p>Personalize sem sair da página.</p></div></div>
+   <div class="mb-settings-brand"><span class="mb-settings-mark">BV</span><div><small>MEDIABOX · PAINEL RÁPIDO</small><h2 id="mb-settings-title">Configurações</h2><p>Personalize sem sair da página.</p></div></div>
    <button type="button" class="mb-settings-close" id="mb-settings-close" aria-label="Fechar configurações">×</button>
   </header>
   <nav class="mb-settings-tabs" aria-label="Abas de configuração">
@@ -1674,7 +1674,7 @@ button{min-height:48px;border-radius:13px;touch-action:manipulation}button:activ
   </nav>
   <section id="mb-settings-errors">
    <span class="mb-settings-kicker">EFEITOS DE DIAGNÓSTICO</span>
-   <p class="mb-settings-copy">Escolha como as mensagens de diagnóstico aparecem. Cada opção tem um movimento diferente e discreto; o restante do BLUEVISION não muda.</p>
+   <p class="mb-settings-copy">Escolha como as mensagens de diagnóstico aparecem. Cada opção tem um movimento diferente e discreto; o restante do MEDIABOX não muda.</p>
    <div class="mb-error-options">
     <button type="button" class="mb-error-option" data-error-choice="scanner" aria-pressed="false"><span class="mb-error-swatch"></span><span><strong>Scanner holográfico</strong><small>Varredura técnica com anéis azul e ciano.</small></span><span class="mb-option-check">✓</span></button>
     <button type="button" class="mb-error-option" data-error-choice="aurora" aria-pressed="true"><span class="mb-error-swatch"></span><span><strong>Aurora suave</strong><small>Brilho fluido em tons azul e ciano.</small></span><span class="mb-option-check">✓</span></button>
@@ -1697,7 +1697,7 @@ button{min-height:48px;border-radius:13px;touch-action:manipulation}button:activ
      <button type="button" class="mb-command-pick" data-command-pick="1234"><b>1234</b><span>Surpresa do urso ND</span></button>
      <button type="button" class="mb-command-pick" data-command-pick="7777"><b>7777</b><span>Chuva de estrelas</span></button>
      <button type="button" class="mb-command-pick" data-command-pick="4040"><b>4040</b><span>Portal secreto 404</span></button>
-     <button type="button" class="mb-command-pick" data-command-pick="2026"><b>2026</b><span>Edição especial BLUEVISION</span></button>
+     <button type="button" class="mb-command-pick" data-command-pick="2026"><b>2026</b><span>Edição especial MEDIABOX</span></button>
      <button type="button" class="mb-command-pick" data-command-pick="0000"><b>0000</b><span>Restaurar animação padrão</span></button>
     </div>
     <p class="mb-command-hint">Os códigos são executados apenas nesta tela. O comando 1234 mantém a surpresa original do urso ND.</p>
@@ -1708,7 +1708,7 @@ button{min-height:48px;border-radius:13px;touch-action:manipulation}button:activ
 <div id="mb-birthday" hidden role="dialog" aria-modal="true" aria-labelledby="mb-birthday-title">
  <section class="mb-birthday-card">
   <button type="button" class="mb-birthday-close" id="mb-birthday-close" aria-label="Fechar surpresa">×</button>
-  <div class="mb-birthday-kicker">BLUEVISION · COMANDO ESPECIAL 1234</div>
+  <div class="mb-birthday-kicker">MEDIABOX · COMANDO ESPECIAL 1234</div>
   <svg class="mb-bear" viewBox="0 0 180 190" role="img" aria-label="Urso de pelúcia com a identificação ND">
    <defs><linearGradient id="mbBearFur" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4c887"/><stop offset="1" stop-color="#a96b43"/></linearGradient><linearGradient id="mbBearBelly" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff0cf"/><stop offset="1" stop-color="#e9cda8"/></linearGradient></defs>
    <ellipse cx="90" cy="170" rx="57" ry="12" fill="#0006"/><circle cx="48" cy="40" r="25" fill="url(#mbBearFur)" stroke="#ffe2b8" stroke-width="3"/><circle cx="132" cy="40" r="25" fill="url(#mbBearFur)" stroke="#ffe2b8" stroke-width="3"/><circle cx="48" cy="40" r="12" fill="#d58f72"/><circle cx="132" cy="40" r="12" fill="#d58f72"/>
@@ -1717,13 +1717,13 @@ button{min-height:48px;border-radius:13px;touch-action:manipulation}button:activ
   </svg>
   <h1 id="mb-birthday-title">Feliz aniversário! 🎂</h1><div class="mb-speech">“Feliz aniversário!”</div>
   <p class="mb-birthday-message">O urso do ND chegou com uma mensagem especial: que seu dia seja cheio de alegria, carinho e momentos incríveis! 🧸</p>
-  <div class="mb-birthday-footer">UMA SURPRESA ESPECIAL DO BLUEVISION</div>
+  <div class="mb-birthday-footer">UMA SURPRESA ESPECIAL DO MEDIABOX</div>
  </section>
 </div>
 <div id="mb-command-surprise" hidden role="dialog" aria-modal="true" aria-labelledby="mb-command-title">
  <section class="mb-command-card" data-theme="celebration">
   <button type="button" class="mb-command-close" id="mb-command-surprise-close" aria-label="Fechar surpresa">×</button>
-  <div class="mb-command-kicker">BLUEVISION · COMANDO ESPECIAL</div>
+  <div class="mb-command-kicker">MEDIABOX · COMANDO ESPECIAL</div>
   <div class="mb-command-symbol" id="mb-command-symbol">✦</div>
   <h2 id="mb-command-title">Surpresa desbloqueada</h2>
   <p class="mb-command-message" id="mb-command-message"></p>
@@ -1744,7 +1744,7 @@ style="display:block;text-align:center;text-decoration:none;padding:14px;border-
 ⬇ Baixar vídeo concluído
 </a>
 <video id="download-preview" controls playsinline preload="metadata" hidden style="display:none;width:100%;max-height:62vh;margin-top:14px;border:1px solid #344763;border-radius:16px;background:#000"></video>
-<div class="path-note small"><strong>Arquivos do BLUEVISION</strong><br>
+<div class="path-note small"><strong>Arquivos do MEDIABOX</strong><br>
 <span class="muted">Quando o vídeo terminar, o botão para baixar aparecerá aqui.</span></div></section>
 
 <section class="card" id="download-queue">
@@ -1768,7 +1768,7 @@ style="display:block;text-align:center;text-decoration:none;padding:14px;border-
 #download-queue .queue-retry{border:1px solid #52698e;background:#17243a;color:#e4edff;cursor:pointer}
 #download-queue button:disabled{opacity:.5;cursor:not-allowed}
 </style>
-<div class="section-head"><div class="section-icon">☷</div><div><h2>BLUEVISION DOWNLOAD MANAGER</h2><p>Adicione vários links e baixe um vídeo por vez.</p></div></div>
+<div class="section-head"><div class="section-icon">☷</div><div><h2>MEDIABOX DOWNLOAD MANAGER</h2><p>Adicione vários links e baixe um vídeo por vez.</p></div></div>
 <div class="field"><label for="queue-input">LINKS PARA A FILA · UM POR LINHA</label><textarea id="queue-input" class="queue-input" rows="4" placeholder="https://www.youtube.com/watch?v=...\nhttps://www.instagram.com/reel/...\nhttps://www.kwai.com/...\nhttps://www.tiktok.com/@perfil/video/..."></textarea><p class="queue-help">Até 20 links por envio. Plataforma e qualidade vêm do formulário acima; a marca-d’água é escolhida separadamente para cada nova adição.</p></div>
 <div class="grid">
   <div class="field"><label for="queue-watermark">MARCA-D’ÁGUA NESTA ADIÇÃO</label><select id="queue-watermark"><option value="sim" selected>Sim — Dias Edits (original)</option><option value="nao">Não — manter original</option></select></div>
@@ -1783,14 +1783,14 @@ style="display:block;text-align:center;text-decoration:none;padding:14px;border-
 <section class="card"><div class="section-head"><div class="section-icon">⌕</div><div><h2>Pesquisar no YouTube</h2><p>Encontre um vídeo ou canal pelo nome.</p></div></div><form id="yt"><div class="field"><label for="term">NOME DO VÍDEO OU CANAL</label><input id="term" required placeholder="Ex.: nome do vídeo ou criador"></div><button class="secondary">Pesquisar no YouTube</button></form><div id="ytout" class="results"></div></section>
 
 
-<section class="card"><div class="section-head"><div class="section-icon">🌐</div><div><h2>Navegador BLUEVISION</h2><p>Pesquise no Google, faça perguntas e abra páginas sem sair da central.</p></div></div><a class="primary" href="/navegador" style="display:block;text-align:center;text-decoration:none;padding:15px;border-radius:14px">🌐 Abrir navegador interno</a></section>
+<section class="card"><div class="section-head"><div class="section-icon">🌐</div><div><h2>Navegador MEDIABOX</h2><p>Pesquise no Google, faça perguntas e abra páginas sem sair da central.</p></div></div><a class="primary" href="/navegador" style="display:block;text-align:center;text-decoration:none;padding:15px;border-radius:14px">🌐 Abrir navegador interno</a></section>
 
 <p class="small legal">A disponibilidade dos downloads depende das regras, permissões e mudanças de cada plataforma. Salve apenas conteúdos seus ou que você tenha autorização para baixar.</p>
-<footer class="footer"><strong>BlueVision</strong><div>Construído por Davi Dias</div><div>Todos os direitos reservados.</div></footer>
+<footer class="footer"><strong>MEDIABOX</strong><div>Construído por Davi Dias</div><div>Todos os direitos reservados.</div></footer>
 
 <div id="mb-local-editor" hidden role="dialog" aria-modal="true" aria-labelledby="mb-editor-title">
   <section class="mb-editor-panel">
-    <h2 id="mb-editor-title">Editor temporário BLUEVISION</h2>
+    <h2 id="mb-editor-title">Editor temporário MEDIABOX</h2>
     <p>HTML e CSS são aplicados temporariamente nesta página. A área Python valida a sintaxe do código, mas não o executa nem altera os arquivos do servidor.</p>
     <div class="mb-auto-run">
       <div class="mb-auto-run-head"><strong>EXECUÇÃO AUTOMÁTICA</strong><span>ESCOLHA UM MODO</span></div>
@@ -1807,7 +1807,7 @@ style="display:block;text-align:center;text-decoration:none;padding:14px;border-
         <button type="button" data-mb-preset="ocean">OCEANO PROFUNDO</button>
         <button type="button" id="mb-preset-reset" class="mb-editor-close">DESATIVAR MODOS</button>
       </div>
-      <p class="mb-auto-run-note">Os modos ficam disponíveis aqui no BLUEVISION. Toque em um nome para executar; use Restaurar página para desfazer todas as alterações temporárias.</p>
+      <p class="mb-auto-run-note">Os modos ficam disponíveis aqui no MEDIABOX. Toque em um nome para executar; use Restaurar página para desfazer todas as alterações temporárias.</p>
     </div>
     <label for="mb-editor-selector">SELETOR DO ELEMENTO HTML</label>
     <input id="mb-editor-selector" value=".hero h1" placeholder="Ex.: .hero h1 ou .hero p">
@@ -1832,7 +1832,7 @@ style="display:block;text-align:center;text-decoration:none;padding:14px;border-
 
 
 const $=x=>document.getElementById(x);let timer=null;
-(function iniciarBlueVisionApp(){
+(function iniciarMEDIABOXApp(){
  const main=document.querySelector("main");
  const top=main&&main.querySelector(".topline");
  if(!main||!top||document.getElementById("bv-nav"))return;
@@ -1862,7 +1862,7 @@ const $=x=>document.getElementById(x);let timer=null;
    const heading=document.createElement("header");
    heading.className="bv-screen-heading";
    const copy=document.createElement("div");
-   const eyebrow=document.createElement("span");eyebrow.textContent="BLUEVISION · APLICATIVO";
+   const eyebrow=document.createElement("span");eyebrow.textContent="MEDIABOX · APLICATIVO";
    const title=document.createElement("h1");title.textContent=label;
    copy.append(eyebrow,title);
    const icon=document.createElement("div");icon.className="bv-screen-heading-icon";icon.setAttribute("aria-hidden","true");
@@ -1875,7 +1875,7 @@ const $=x=>document.getElementById(x);let timer=null;
  }
  const dashboard=document.createElement("section");
  dashboard.className="bv-dashboard bv-home-dashboard";
- dashboard.innerHTML='<div class="bv-home-topline"><span>BLUEVISION · VIDEO STUDIO</span><span class="bv-home-live"><i></i> CENTRAL DE VÍDEOS</span></div><div class="bv-home-art" aria-hidden="true"><span class="bv-home-art-ring"></span><span class="bv-home-play">▶</span><span class="bv-home-art-label">BV</span></div><div class="bv-home-copy"><div class="bv-home-kicker">SEU ESPAÇO DIGITAL</div><h2>Seu conteúdo.<br><span>Em movimento.</span></h2><p>Baixe vídeos, organize sua fila e encontre conteúdos em uma experiência feita para o celular.</p></div><button class="bv-home-main-action" type="button" data-bv-go="baixar"><span class="bv-home-main-icon">↓</span><span><strong>Começar download</strong><small>YouTube, Instagram, TikTok e mais</small></span><b>→</b></button><div class="bv-home-section-label">ACESSO RÁPIDO</div><div class="bv-home-shortcuts"><button class="bv-home-shortcut" type="button" data-bv-go="fila"><span class="bv-home-shortcut-icon">☷</span><span><strong>Minha fila</strong><small>Acompanhe seus vídeos</small></span><b>›</b></button><button class="bv-home-shortcut" type="button" data-bv-go="buscar"><span class="bv-home-shortcut-icon">⌕</span><span><strong>Pesquisar</strong><small>Vídeos e canais</small></span><b>›</b></button><button class="bv-home-shortcut" type="button" data-bv-go="ferramentas"><span class="bv-home-shortcut-icon">✦</span><span><strong>Ferramentas</strong><small>Mais recursos do BLUEVISION</small></span><b>›</b></button></div><div class="bv-home-footnote"><span>BLUEVISION</span><span>VIDEO HUB</span></div>';
+ dashboard.innerHTML='<div class="bv-home-topline"><span>MEDIABOX · VIDEO STUDIO</span><span class="bv-home-live"><i></i> CENTRAL DE VÍDEOS</span></div><div class="bv-home-art" aria-hidden="true"><span class="bv-home-art-ring"></span><span class="bv-home-play">▶</span><span class="bv-home-art-label">BV</span></div><div class="bv-home-copy"><div class="bv-home-kicker">SEU ESPAÇO DIGITAL</div><h2>Seu conteúdo.<br><span>Em movimento.</span></h2><p>Baixe vídeos, organize sua fila e encontre conteúdos em uma experiência feita para o celular.</p></div><button class="bv-home-main-action" type="button" data-bv-go="baixar"><span class="bv-home-main-icon">↓</span><span><strong>Começar download</strong><small>YouTube, Instagram, TikTok e mais</small></span><b>→</b></button><div class="bv-home-section-label">ACESSO RÁPIDO</div><div class="bv-home-shortcuts"><button class="bv-home-shortcut" type="button" data-bv-go="fila"><span class="bv-home-shortcut-icon">☷</span><span><strong>Minha fila</strong><small>Acompanhe seus vídeos</small></span><b>›</b></button><button class="bv-home-shortcut" type="button" data-bv-go="buscar"><span class="bv-home-shortcut-icon">⌕</span><span><strong>Pesquisar</strong><small>Vídeos e canais</small></span><b>›</b></button><button class="bv-home-shortcut" type="button" data-bv-go="ferramentas"><span class="bv-home-shortcut-icon">✦</span><span><strong>Ferramentas</strong><small>Mais recursos do MEDIABOX</small></span><b>›</b></button></div><div class="bv-home-footnote"><span>MEDIABOX</span><span>VIDEO HUB</span></div>';
  if(hero)hero.remove();
  addPage("inicio","Início",[dashboard]);
  addPage("baixar","Baixar vídeo",[download]);
@@ -1883,23 +1883,26 @@ const $=x=>document.getElementById(x);let timer=null;
  addPage("buscar","Pesquisar",[search]);
  const toolsIntro=document.createElement("section");
  toolsIntro.className="bv-dashboard";
- toolsIntro.innerHTML='<div class="bv-dashboard-kicker">BLUEVISION · CENTRAL DE RECURSOS</div><h2>Ferramentas</h2><p>Todos os recursos extras ficam reunidos aqui, sem ocupar as outras abas.</p>';
+ toolsIntro.innerHTML='<div class="bv-dashboard-kicker">MEDIABOX · CENTRAL DE RECURSOS</div><h2>Ferramentas</h2><p>Todos os recursos extras ficam reunidos aqui, sem ocupar as outras abas.</p>';
  const settingsButton=document.createElement("div");
  settingsButton.className="bv-tool-settings";
  settingsButton.appendChild(document.createElement("div"));
- settingsButton.firstElementChild.innerHTML='<strong>Personalização e comandos</strong><p>Animações, efeitos e comandos especiais do BlueVision.</p>';
+ settingsButton.firstElementChild.innerHTML='<strong>Personalização e comandos</strong><p>Animações, efeitos e comandos especiais do MEDIABOX.</p>';
  const settingsAction=document.createElement("button");
  settingsAction.type="button";settingsAction.className="primary";settingsAction.id="mb-settings-open";settingsAction.textContent="⚙ Configurações e comandos especiais";
  settingsButton.appendChild(settingsAction);
  const accountIntro=document.createElement("section");
  accountIntro.className="bv-dashboard";
- accountIntro.innerHTML='<div class="bv-dashboard-kicker">BLUEVISION · ÁREA PESSOAL</div><h2>Conta e progresso</h2><p>Acompanhe suas conquistas e abra a prévia avançada dos seus arquivos neste dispositivo.</p>';
+ accountIntro.innerHTML='<div class="bv-dashboard-kicker">MEDIABOX · ÁREA PESSOAL</div><h2>Conta e progresso</h2><p>Acompanhe suas conquistas e abra a prévia avançada dos seus arquivos neste dispositivo.</p>';
  if(accountLinks)accountLinks.classList.add("bv-account-links");
- addPage("ferramentas","Ferramentas",[toolsIntro,settingsButton,maths,browser,legal,footer]);
+ const equalizerLink=document.createElement("section");
+ equalizerLink.className="card";
+ equalizerLink.innerHTML='<div class="section-head"><div class="section-icon">🎚️</div><div><h2>Equalizador de áudio</h2><p>Equalizador PRO de 10 bandas, prévia e exportação.</p></div></div><a class="primary" href="/ferramentas/equalizador" style="display:block;text-align:center;text-decoration:none;padding:15px;border-radius:14px">Abrir Equalizador PRO</a>';
+ addPage("ferramentas","Ferramentas",[toolsIntro,browser,equalizerLink,legal,footer]);
  if(accountControls)accountControls.classList.add("bv-account-actions");
- addPage("conta","Conta e conquistas",[accountIntro,accountControls,accountLinks]);
+ addPage("conta","Conta e conquistas",[accountIntro,settingsButton,accountControls,accountLinks]);
  const reviewCard=document.createElement("section");reviewCard.className="card";reviewCard.id="bv-reviews";
- reviewCard.innerHTML='<div class="section-head"><div class="section-icon">★</div><div><h2>Avaliações do BLUEVISION</h2><p>Nota e opiniões reais de quem usa o app.</p></div></div><div class="bv-rating-overview"><div class="bv-rating-score"><strong id="bv-rating-average">0,0</strong><div id="bv-rating-stars">☆☆☆☆☆</div><small id="bv-rating-count">0 avaliações</small></div><div id="bv-rating-bars"></div></div><form id="bv-review-form" enctype="multipart/form-data"><h3>Deixe sua avaliação</h3><label>Nome público<input name="nome" maxlength="40" placeholder="Como seu nome aparecerá"></label><span>Sua nota</span><div class="bv-star-picker"><button type="button" data-review-star="1">★</button><button type="button" data-review-star="2">★</button><button type="button" data-review-star="3">★</button><button type="button" data-review-star="4">★</button><button type="button" data-review-star="5">★</button></div><input type="hidden" name="estrelas" id="bv-review-stars" value="0"><label>Comentário<textarea name="comentario" maxlength="600" rows="4" placeholder="Conte o que achou do BlueVision..."></textarea></label><label>Foto opcional (JPG, PNG ou WEBP até 1 MB)<input name="foto" type="file" accept="image/jpeg,image/png,image/webp"></label><button class="primary" type="submit" id="bv-review-submit">Publicar avaliação</button><p id="bv-review-status" role="status">Você pode atualizar sua avaliação quando quiser.</p></form><h3>Opiniões recentes · AO VIVO</h3><div id="bv-review-list">Carregando avaliações...</div>';
+ reviewCard.innerHTML='<div class="section-head"><div class="section-icon">★</div><div><h2>Avaliações do MEDIABOX</h2><p>Nota e opiniões reais de quem usa o app.</p></div></div><div class="bv-rating-overview"><div class="bv-rating-score"><strong id="bv-rating-average">0,0</strong><div id="bv-rating-stars">☆☆☆☆☆</div><small id="bv-rating-count">0 avaliações</small></div><div id="bv-rating-bars"></div></div><form id="bv-review-form" enctype="multipart/form-data"><h3>Deixe sua avaliação</h3><label>Nome público<input name="nome" maxlength="40" placeholder="Como seu nome aparecerá"></label><span>Sua nota</span><div class="bv-star-picker"><button type="button" data-review-star="1">★</button><button type="button" data-review-star="2">★</button><button type="button" data-review-star="3">★</button><button type="button" data-review-star="4">★</button><button type="button" data-review-star="5">★</button></div><input type="hidden" name="estrelas" id="bv-review-stars" value="0"><label>Comentário<textarea name="comentario" maxlength="600" rows="4" placeholder="Conte o que achou do MEDIABOX..."></textarea></label><label>Foto opcional (JPG, PNG ou WEBP até 1 MB)<input name="foto" type="file" accept="image/jpeg,image/png,image/webp"></label><button class="primary" type="submit" id="bv-review-submit">Publicar avaliação</button><p id="bv-review-status" role="status">Você pode atualizar sua avaliação quando quiser.</p></form><h3>Opiniões recentes · AO VIVO</h3><div id="bv-review-list">Carregando avaliações...</div>';
  const reviewCss=document.createElement("style");reviewCss.textContent='.bv-rating-overview{display:grid;grid-template-columns:100px 1fr;gap:12px;padding:14px;border:1px solid #344b68;border-radius:16px;background:#111e30}.bv-rating-score{text-align:center}.bv-rating-score strong{display:block;font-size:40px}.bv-rating-stars,.bv-review-item-stars{color:#ffc85a;letter-spacing:2px}.bv-rating-row{display:grid;grid-template-columns:22px 1fr 20px;gap:6px;align-items:center;margin:6px 0;font-size:10px}.bv-rating-track{height:7px;background:#26364e;border-radius:20px;overflow:hidden}.bv-rating-fill{height:100%;background:#ffc85a}#bv-review-form{display:grid;gap:9px;margin:15px 0;padding:14px;border:1px solid #30435f;border-radius:16px;background:#0d1727}#bv-review-form h3{margin:0}#bv-review-form label{display:grid;gap:6px;color:#bdcce1;font-size:11px}#bv-review-form input:not([type=file]),#bv-review-form textarea{width:100%;box-sizing:border-box;padding:11px;border:1px solid #344b68;border-radius:11px;background:#080f1c;color:white;font:inherit}.bv-star-picker{display:flex;gap:6px}.bv-star-picker button{width:42px;min-height:42px;margin:0;padding:0;background:#152238;border:1px solid #394d68;color:#65758c;font-size:24px}.bv-star-picker button[aria-pressed=true]{color:#ffc85a;border-color:#b68c42}#bv-review-form button[type=submit]{width:100%}#bv-review-status{margin:0;font-size:11px;color:#9cb1cb}.bv-review-item{padding:12px;margin:8px 0;border:1px solid #2d405b;border-radius:14px;background:#101c2d}.bv-review-person{display:flex;align-items:center;gap:9px}.bv-review-avatar{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:50%;background:#24415b;overflow:hidden}.bv-review-avatar img{width:100%;height:100%;object-fit:cover}.bv-review-person strong,.bv-review-person small{display:block}.bv-review-person small{color:#8799b5;font-size:9px}.bv-review-item-stars{margin-left:auto}.bv-review-comment{font-size:12px;line-height:1.5;overflow-wrap:anywhere}';document.head.appendChild(reviewCss);accountIntro.insertAdjacentElement("afterend",reviewCard);
  let pickedStars=0,busyReviews=false;
  function chooseStars(n){pickedStars=n;$("bv-review-stars").value=String(n);document.querySelectorAll("[data-review-star]").forEach(b=>b.setAttribute("aria-pressed",String(Number(b.dataset.reviewStar)<=n)));}
@@ -1913,7 +1916,7 @@ const $=x=>document.getElementById(x);let timer=null;
  nav.setAttribute("aria-label","Navegação principal");
  nav.innerHTML='<button type="button" data-bv-view="inicio"><span class="bv-nav-icon">⌂</span><span>Início</span></button><button type="button" data-bv-view="baixar"><span class="bv-nav-icon">↓</span><span>Baixar</span></button><button type="button" data-bv-view="fila"><span class="bv-nav-icon">☷</span><span>Fila</span></button><button type="button" data-bv-view="buscar"><span class="bv-nav-icon">⌕</span><span>Buscar</span></button><button type="button" data-bv-view="ferramentas"><span class="bv-nav-icon">✦</span><span>Ferramentas</span></button>';
  const appbarActions=document.createElement("div");appbarActions.className="bv-appbar-actions";
- const installButton=document.createElement("button");installButton.type="button";installButton.id="bv-install-app";installButton.className="bv-appbar-button bv-install-button";installButton.setAttribute("aria-label","Instalar BLUEVISION");installButton.title="Instalar BLUEVISION";installButton.textContent="⇩";installButton.hidden=true;
+ const installButton=document.createElement("button");installButton.type="button";installButton.id="bv-install-app";installButton.className="bv-appbar-button bv-install-button";installButton.setAttribute("aria-label","Instalar MEDIABOX");installButton.title="Instalar MEDIABOX";installButton.textContent="⇩";installButton.hidden=true;
  const accountButton=document.createElement("button");accountButton.type="button";accountButton.className="bv-appbar-button";accountButton.id="bv-account-open";accountButton.setAttribute("aria-label","Abrir conta");accountButton.title="Conta";accountButton.textContent="♙";
  appbarActions.append(installButton,accountButton);top.appendChild(appbarActions);document.body.appendChild(nav);
  accountButton.addEventListener("click",()=>mudarTela("conta","push"));
@@ -1923,7 +1926,7 @@ const $=x=>document.getElementById(x);let timer=null;
  window.addEventListener("appinstalled",()=>{installPromptEvent=null;installButton.hidden=true;});
  const standalone=window.matchMedia("(display-mode:standalone)").matches||window.navigator.standalone===true;
  if(standalone)document.body.classList.add("bv-is-standalone");
- if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(error=>console.warn("BLUEVISION PWA:",error));
+ if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(error=>console.warn("MEDIABOX PWA:",error));
  function mudarTela(id,historyMode){
   if(!pages[id])id="inicio";
   Object.keys(pages).forEach(key=>{pages[key].hidden=key!==id;});
@@ -1983,7 +1986,7 @@ function mbPrevisualizarErro(){
  $("error-message").textContent="Este é apenas um exemplo visual. Nenhum erro real foi provocado.";
  $("error-category").textContent="Demonstração";$("error-code").textContent="MB-PREVIEW";
  $("error-http").textContent="Não aplicável";$("error-time").textContent=new Date().toLocaleString("pt-BR");
- $("error-technical").textContent="BLUEVISION — PRÉ-VISUALIZAÇÃO\nEfeito: "+MB_ERROR_ANIMATIONS[mbErrorAnimation]+"\nNenhuma operação foi executada.";
+ $("error-technical").textContent="MEDIABOX — PRÉ-VISUALIZAÇÃO\nEfeito: "+MB_ERROR_ANIMATIONS[mbErrorAnimation]+"\nNenhuma operação foi executada.";
  $("mb-settings").hidden=true;$("error-center").hidden=false;
 }
 function mbFecharComandoSurpresa(){
@@ -2009,9 +2012,9 @@ function mbExecutarComando(){
   campo.value="";return;
  }
  const especiais={
-  "7777":["Chuva de estrelas","Você desbloqueou uma pequena celebração visual do BLUEVISION. ✨","✦","celebration"],
+  "7777":["Chuva de estrelas","Você desbloqueou uma pequena celebração visual do MEDIABOX. ✨","✦","celebration"],
   "4040":["Portal 404","Você encontrou uma passagem secreta. Nada foi alterado na sua página.","404","portal"],
-  "2026":["BLUEVISION · EDIÇÃO 2026","Obrigado por explorar as ferramentas e os detalhes escondidos do Video Hub. 💚","MB","future"]
+  "2026":["MEDIABOX · EDIÇÃO 2026","Obrigado por explorar as ferramentas e os detalhes escondidos do Video Hub. 💚","MB","future"]
  };
  const item=especiais[comando];
  if(!item){status.textContent="Código não reconhecido. Escolha um dos atalhos exibidos.";return;}
@@ -2278,7 +2281,7 @@ function mbExecutarModoVisual(id){
     const palco=document.createElement("section");
     palco.id="mb-chaos-stage";
     palco.className="mb-chaos-stage";
-    palco.innerHTML='<div class="mb-chaos-kicker">BLUEVISION · SISTEMA DE DIAGNOSTICO</div><h2>DIMENSAO 404</h2><p>Voce entrou em uma area que nao deveria existir.</p><p>STATUS: REALIDADE INSTAVEL</p><button type="button" id="mb-chaos-launch">ATIVAR O CAOS</button><pre id="mb-chaos-terminal">&gt; Sistema iniciado...\n&gt; Aguardando comando...</pre>';
+    palco.innerHTML='<div class="mb-chaos-kicker">MEDIABOX · SISTEMA DE DIAGNOSTICO</div><h2>DIMENSAO 404</h2><p>Voce entrou em uma area que nao deveria existir.</p><p>STATUS: REALIDADE INSTAVEL</p><button type="button" id="mb-chaos-launch">ATIVAR O CAOS</button><pre id="mb-chaos-terminal">&gt; Sistema iniciado...\n&gt; Aguardando comando...</pre>';
     const hero=document.querySelector("main .hero");
     if(hero)hero.insertAdjacentElement("afterend",palco);
     else document.querySelector("main").prepend(palco);
@@ -2508,7 +2511,7 @@ function mbRenderHistoricoDiagnostico(){
   }
   lista.forEach(item=>{
     const cartao=document.createElement("article");cartao.className="error-history-item";
-    const titulo=document.createElement("strong");titulo.textContent=item.titulo||"Diagnóstico BLUEVISION";
+    const titulo=document.createElement("strong");titulo.textContent=item.titulo||"Diagnóstico MEDIABOX";
     const detalhe=document.createElement("small");
     detalhe.textContent=(item.horario||"Horário não registrado")+" · "+(item.resumo||"Sem resumo")+". "+(item.mensagem||"");
     cartao.append(titulo,detalhe);area.appendChild(cartao);
@@ -2548,7 +2551,7 @@ function mbSugestaoDiagnostico(mensagem,origem,verificacoes){
   if(/rotas principais|aplicação flask/.test(falhas))return "Há uma verificação do servidor que falhou. Confira o último deploy e os logs do Render antes de repetir a operação.";
   if(/runtime python|yt-dlp|requests/.test(falhas))return "Uma dependência do servidor não passou na verificação. Confira os requisitos instalados no último deploy.";
   if(/youtube|instagram|kwai|tiktok/.test(texto))return "As verificações locais não controlam bloqueios das plataformas. Confirme se o link está disponível e tente novamente mais tarde.";
-  if(/rede|conexão|timeout|network/.test(texto)||/conexão do navegador/.test(falhas))return "Confira a conexão do dispositivo e se o BLUEVISION continua acessível no Render.";
+  if(/rede|conexão|timeout|network/.test(texto)||/conexão do navegador/.test(falhas))return "Confira a conexão do dispositivo e se o MEDIABOX continua acessível no Render.";
   if(verificacoes.some(item=>item.status==="falha"))return "Use os itens marcados como falha acima como ponto de partida e confira os logs do servidor.";
   return "As verificações internas terminaram. Confira o link, os dados enviados e tente novamente; o diagnóstico não altera nem corrige arquivos automaticamente.";
 }
@@ -2569,7 +2572,7 @@ async function executarPreDiagnostico(sequencia){
 
   const idsEssenciais=["error-center","error-intro","error-title","intro-steps","intro-progress-fill"];
   const ausentes=idsEssenciais.filter(id=>!$(id));
-  adicionar("Interface do BLUEVISION",ausentes.length?"falha":"ok",
+  adicionar("Interface do MEDIABOX",ausentes.length?"falha":"ok",
     ausentes.length?"Elementos ausentes: "+ausentes.join(", "):"Janela de diagnóstico e elementos principais encontrados.");
 
   const jsOk=typeof fetchOriginal==="function"&&typeof JSON==="object"&&typeof Promise==="function";
@@ -2750,7 +2753,7 @@ function classificarErro(mensagem,origem){
 }
 function mostrarErroCentral(mensagem,contexto={}){
   const texto=limparDadoTecnico(mensagem||"Ocorreu um erro inesperado.");
-  const origem=limparDadoTecnico(contexto.origem||contexto.endpoint||"BLUEVISION");
+  const origem=limparDadoTecnico(contexto.origem||contexto.endpoint||"MEDIABOX");
   const tipo=classificarErro(texto,origem);
   const chave=texto+"|"+origem+"|"+String(contexto.itemId||"");
   if(errosCentraisExibidos.has(chave)){
@@ -2775,7 +2778,7 @@ function mostrarErroCentral(mensagem,contexto={}){
   let detalhes=contexto.detalhes;
   if(typeof detalhes==="object"&&detalhes!==null){try{detalhes=JSON.stringify(detalhes,null,2)}catch(_){detalhes=String(detalhes)}}
   diagnosticoAtual=[
-    "BLUEVISION — DIAGNÓSTICO DE ERRO",
+    "MEDIABOX — DIAGNÓSTICO DE ERRO",
     "Categoria: "+tipo.categoria,
     "Código: "+codigo,
     "HTTP: "+http,
@@ -2812,7 +2815,7 @@ async function solicitarRespostaCaptcha(pergunta){
     fundo.style.cssText="position:fixed;inset:0;z-index:120000;display:grid;place-items:center;padding:18px;background:#030713e8;backdrop-filter:blur(12px)";
     const painel=document.createElement("form");
     painel.style.cssText="width:min(390px,100%);padding:24px;border:1px solid #496184;border-radius:22px;background:linear-gradient(145deg,#14233a,#09111f);box-shadow:0 25px 90px #000b;color:#f4f7ff;font-family:Inter,system-ui,Arial";
-    const selo=document.createElement("div");selo.textContent="BLUEVISION • SEGURANÇA";selo.style.cssText="color:#70f0e6;font-size:10px;font-weight:900;letter-spacing:2px";
+    const selo=document.createElement("div");selo.textContent="MEDIABOX • SEGURANÇA";selo.style.cssText="color:#70f0e6;font-size:10px;font-weight:900;letter-spacing:2px";
     const titulo=document.createElement("h2");titulo.textContent="Verificação anti-robô";titulo.style.cssText="margin:10px 0 6px;font-size:22px";
     const texto=document.createElement("p");texto.textContent="Para continuar, resolva esta conta simples:";texto.style.cssText="color:#aab7ce;font-size:13px;line-height:1.5";
     const conta=document.createElement("div");conta.textContent=pergunta;conta.style.cssText="margin:16px 0;padding:17px;text-align:center;border:1px solid #36516f;border-radius:14px;background:#0a1728;color:#8ff8ed;font-size:27px;font-weight:900;letter-spacing:2px";
@@ -2992,7 +2995,7 @@ async function atualizarFila(){
       const watermarkInfo=document.createElement("div");
       watermarkInfo.className="queue-help";
       watermarkInfo.textContent=item.marca_dagua
-        ? "✦ Com marca BLUEVISION · "+({
+        ? "✦ Com marca MEDIABOX · "+({
             superior_esquerdo:"superior esquerdo",
             superior_direito:"superior direito",
             inferior_esquerdo:"inferior esquerdo",
@@ -3155,8 +3158,8 @@ def bluevision_manifest():
     from flask import Response
     manifesto = {
         "id": "/",
-        "name": "BLUEVISION — Video Studio",
-        "short_name": "BLUEVISION",
+        "name": "MEDIABOX — Video Studio",
+        "short_name": "MEDIABOX",
         "description": "Seu aplicativo de vídeos, downloads e pesquisa.",
         "lang": "pt-BR",
         "start_url": "/?origem=aplicativo",
@@ -3232,7 +3235,7 @@ def navegador_mediabox():
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#080b14"><title>BLUEVISION Browser</title>
+<meta name="theme-color" content="#080b14"><title>MEDIABOX Browser</title>
 <style>
 :root{color-scheme:dark;--bg:#070a12;--panel:#111a2b;--line:#293954;--cyan:#70f0e6;--blue:#7b9cff;--pink:#c09aff;--muted:#96a4bd}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 10% 0%,#183b54 0,transparent 36%),radial-gradient(ellipse at 95% 12%,#35205a 0,transparent 30%),var(--bg);font-family:Inter,system-ui,Arial;color:#f4f7ff}
@@ -3250,12 +3253,12 @@ iframe{display:block;width:100%;height:68vh;min-height:480px;border:0;background
 @media(max-width:560px){main{width:94%;padding-top:10px}.search{gap:5px;padding:7px}.search input{font-size:14px}.search button{padding:11px 12px}.frame-wrap{border-radius:13px}iframe{height:70vh;min-height:430px}}
 </style></head>
 <body><main>
-<header class="top"><div class="brand">BLUEVISION<span>BROWSER • PESQUISA NA WEB</span></div><a class="back" href="/">← Voltar</a></header>
+<header class="top"><div class="brand">MEDIABOX<span>BROWSER • PESQUISA NA WEB</span></div><a class="back" href="/">← Voltar</a></header>
 <section class="hero"><h1>Pesquisar na web</h1><p>Use o Google para pesquisar perguntas, cálculos, vídeos e páginas.</p></section>
 <form class="search" id="busca"><input id="q" autocomplete="off" placeholder="Pesquise qualquer coisa no Google..." aria-label="Pesquisar no Google" required><button type="submit">Pesquisar</button></form>
 <nav class="tools"><button type="button" id="voltar">← Voltar</button><button type="button" id="avancar">Avançar →</button><button type="button" id="recarregar">↻ Atualizar</button><button type="button" id="inicio">⌂ Google</button></nav>
-<div class="frame-wrap"><iframe id="pagina" name="pagina" title="Página aberta no navegador BLUEVISION" referrerpolicy="strict-origin-when-cross-origin" allow="fullscreen; autoplay; encrypted-media; picture-in-picture"></iframe></div>
-<p class="note"><strong>Compatibilidade:</strong> a pesquisa usa o Google. Alguns sites impedem que suas páginas sejam exibidas dentro de outros sites; quando isso acontecer, use a opção de abrir a página no navegador do dispositivo. O BLUEVISION não consegue remover essas restrições.</p>
+<div class="frame-wrap"><iframe id="pagina" name="pagina" title="Página aberta no navegador MEDIABOX" referrerpolicy="strict-origin-when-cross-origin" allow="fullscreen; autoplay; encrypted-media; picture-in-picture"></iframe></div>
+<p class="note"><strong>Compatibilidade:</strong> a pesquisa usa o Google. Alguns sites impedem que suas páginas sejam exibidas dentro de outros sites; quando isso acontecer, use a opção de abrir a página no navegador do dispositivo. O MEDIABOX não consegue remover essas restrições.</p>
 </main>
 <script>
 const campo=document.getElementById("q"),frame=document.getElementById("pagina");
@@ -3330,7 +3333,7 @@ def entregar_arquivo(nome):
 
 @app.get("/diagnostico/preflight")
 def diagnostico_preflight():
-    """Executa verificações reais e leves do ambiente BlueVision."""
+    """Executa verificações reais e leves do ambiente MEDIABOX."""
     verificacoes = []
 
     def registrar(nome, status, detalhe):
@@ -3389,7 +3392,7 @@ def diagnostico_preflight():
             dir=PASTA,
             delete=True
         ) as arquivo_teste:
-            arquivo_teste.write("BlueVision diagnóstico")
+            arquivo_teste.write("MEDIABOX diagnóstico")
             arquivo_teste.flush()
         registrar("Armazenamento", "ok", "A pasta de mídia aceitou um teste temporário de escrita.")
     except Exception as exc:
@@ -3987,7 +3990,7 @@ def matematica_mediabox():
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BLUEVISION Matemática</title>
+<title>MEDIABOX Matemática</title>
 <style>
 body{background:#080d1c;color:white;font-family:Arial;padding:20px}
 main{max-width:600px;margin:auto}
@@ -4001,7 +4004,7 @@ a{color:#54dfff}
 </head>
 <body>
 <main>
-<a href="/">← Voltar ao BLUEVISION</a>
+<a href="/">← Voltar ao MEDIABOX</a>
 <h1>🧮 Matemática</h1>
 
 <div class="card">

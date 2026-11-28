@@ -85,11 +85,11 @@ ERROR_CENTER_STYLE = """
   if(/http.?5[0-9][0-9]|servidor|gateway/.test(t))return ["Servidor","O servidor encontrou uma falha","◈"];
   return ["Operação geral","Não foi possível concluir","⚠"];
  }
- function show(message,origin="Ferramenta BLUEVISION",code="MB-OP-001",http="",details="Sem detalhes adicionais."){
+ function show(message,origin="Ferramenta MEDIABOX",code="MB-OP-001",http="",details="Sem detalhes adicionais."){
   const msg=clean(message||"Ocorreu um erro inesperado."),kind=category(msg,origin),now=Date.now(),key=msg;
   if(key===lastKey&&now-lastAt<3000)return;
   lastKey=key;lastAt=now;
-  report=["BLUEVISION — DIAGNÓSTICO","Categoria: "+kind[0],"Código: "+code,"HTTP: "+(http||"Não disponível"),"Origem: "+clean(origin),"Horário: "+new Date(now).toLocaleString("pt-BR"),"Mensagem: "+msg,"Detalhes: "+clean(details)].join("\\n");
+  report=["MEDIABOX — DIAGNÓSTICO","Categoria: "+kind[0],"Código: "+code,"HTTP: "+(http||"Não disponível"),"Origem: "+clean(origin),"Horário: "+new Date(now).toLocaleString("pt-BR"),"Mensagem: "+msg,"Detalhes: "+clean(details)].join("\\n");
   $("mb-error-icon").textContent=kind[2];$("mb-error-title").textContent=kind[1];$("mb-error-message").textContent=msg;
   $("mb-error-category").textContent=kind[0];$("mb-error-code").textContent=code;$("mb-error-http").textContent=http||"Não disponível";
   $("mb-error-time").textContent=new Date(now).toLocaleString("pt-BR");$("mb-error-details").textContent=report;$("mb-error").hidden=false;
@@ -120,7 +120,7 @@ def page(title, body):
     center = """
 <div id="mb-error" hidden role="alertdialog" aria-modal="true" aria-labelledby="mb-error-title">
  <section class="mb-error-panel">
-  <div class="mb-error-head"><span>BLUEVISION · DIAGNÓSTICO</span><span class="mb-error-badge">FALHA IDENTIFICADA</span></div>
+  <div class="mb-error-head"><span>MEDIABOX · DIAGNÓSTICO</span><span class="mb-error-badge">FALHA IDENTIFICADA</span></div>
   <div id="mb-error-icon" class="mb-error-icon">⚠</div>
   <h2 id="mb-error-title">Não foi possível concluir</h2>
   <p id="mb-error-message" class="mb-error-message">Ocorreu um problema durante esta operação.</p>
@@ -135,7 +135,7 @@ def page(title, body):
  </section>
 </div>
 """
-    return '<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + title + ' • BLUEVISION</title>' + STYLE + '<body><main><header class="top"><strong>BLUEVISION • ' + title + '</strong><a class="back" href="/">← Voltar</a></header>' + body + '</main>' + center + ERROR_CENTER_STYLE + '</body></html>'
+    return '<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + title + ' • MEDIABOX</title>' + STYLE + '<body><main><header class="top"><strong>MEDIABOX • ' + title + '</strong><a class="back" href="/">← Voltar</a></header>' + body + '</main>' + center + ERROR_CENTER_STYLE + '</body></html>'
 
 def files_by_type(exts):
     found = []
@@ -176,26 +176,7 @@ def register_features(app, base_dir, media_dir, logger):
             try:
                 source = response.get_data(as_text=True)
                 marker = '<p class="small legal">'
-                cards = """
-<section class="card"><div class="section-head"><div class="section-icon">✨</div><div><h2>Ferramentas BLUEVISION</h2><p>Novas áreas para organizar, editar e criar conteúdo.</p></div></div>
-<div class="grid">
-<a class="item" href="/biblioteca">📚 <b>Minha biblioteca</b><br><span class="small">Vídeos, áudios e imagens salvos</span></a>
-<a class="item" href="/musica">🎵 <b>Player de música</b><br><span class="small">Ouça arquivos de áudio da biblioteca</span></a>
-<a class="item" href="/editor-video">🎬 <b>Editor de vídeos</b><br><span class="small">Cortar e redimensionar vídeos</span></a>
-<a class="item" href="/mediabox-ia">🤖 <b>BLUEVISION IA</b><br><span class="small">Assistente para perguntas e ideias</span></a>
-<a class="item" href="/clima">🌤️ <b>Previsão do tempo</b><br><span class="small">Consulte o clima de uma cidade</span></a>
-<a class="item" href="/editor-imagem">🖼️ <b>Editor de imagens</b><br><span class="small">Ajustes rápidos e exportação</span></a>
-<a class="item" href="/capas">🎨 <b>Criador de capas</b><br><span class="small">Gere uma miniatura de um vídeo</span></a>
-<a class="item" href="/estatisticas">📊 <b>Estatísticas</b><br><span class="small">Resumo do espaço e dos arquivos</span></a>
-<a class="item" href="/ferramentas/capa">🖼️ <b>Capturador de capas</b><br><span class="small">Extrair um quadro do vídeo</span></a>
-<a class="item" href="/ferramentas/compressor">🗜️ <b>Compressor de vídeo</b><br><span class="small">Reduzir tamanho em MP4</span></a>
-<a class="item" href="/ferramentas/informacoes">🔎 <b>Informações de mídia</b><br><span class="small">Resolução, codec, duração e FPS</span></a>
-<a class="item" href="/ferramentas/velocidade">⏩ <b>Controlador de velocidade</b><br><span class="small">Acelerar ou desacelerar vídeos</span></a>
-<a class="item" href="/ferramentas/fundo">✂️ <b>Removedor de fundo</b><br><span class="small">Transparência para fundos de cor uniforme</span></a>
-<a class="item" href="/ferramentas/colagem">🎞️ <b>Colagem de vídeos</b><br><span class="small">Montar até quatro vídeos em uma tela</span></a>
-<a class="item" href="/ferramentas/equalizador">🎚️ <b>Equalizador de áudio</b><br><span class="small">Ajustar graves, médios e agudos</span></a>
-</div></section>
-"""
+                cards = ""
                 if marker in source:
                     response.set_data(source.replace(marker, cards + marker, 1))
             except Exception:
@@ -205,7 +186,7 @@ def register_features(app, base_dir, media_dir, logger):
     @app.get("/biblioteca")
     def biblioteca():
         items = files_by_type(VIDEO_EXT | AUDIO_EXT | IMAGE_EXT)
-        body = """<h1>📚 Minha biblioteca</h1><p>Arquivos encontrados na pasta de mídia do BLUEVISION.</p><section class="card"><div class="grid">{% for f in items %}<article class="item"><b>{{f.name}}</b><p class="small">{{f.kind}} · {{f.size}} · {{f.date}}</p><a href="/extras/media/{{f.name|urlencode}}" target="_blank">Abrir arquivo</a></article>{% else %}<p>Nenhum arquivo encontrado ainda. Baixe um vídeo para começar.</p>{% endfor %}</div></section>"""
+        body = """<h1>📚 Minha biblioteca</h1><p>Arquivos encontrados na pasta de mídia do MEDIABOX.</p><section class="card"><div class="grid">{% for f in items %}<article class="item"><b>{{f.name}}</b><p class="small">{{f.kind}} · {{f.size}} · {{f.date}}</p><a href="/extras/media/{{f.name|urlencode}}" target="_blank">Abrir arquivo</a></article>{% else %}<p>Nenhum arquivo encontrado ainda. Baixe um vídeo para começar.</p>{% endfor %}</div></section>"""
         for item in items:
             ext = os.path.splitext(item["name"])[1].lower()
             item["kind"] = "Vídeo" if ext in VIDEO_EXT else "Áudio" if ext in AUDIO_EXT else "Imagem"
@@ -223,7 +204,7 @@ def register_features(app, base_dir, media_dir, logger):
     @app.get("/musica")
     def musica():
         items = files_by_type(AUDIO_EXT)
-        body = """<h1>🎵 Player BLUEVISION</h1>
+        body = """<h1>🎵 Player MEDIABOX</h1>
 <p>Ouça suas músicas e reproduza vídeos MP4 diretamente da pasta SnapTube do celular. Os arquivos locais não são enviados ao Render.</p>
 <section class="card">
 <h2>🎧 Músicas da biblioteca</h2>
@@ -233,7 +214,7 @@ def register_features(app, base_dir, media_dir, logger):
 </section>
 <section class="card">
 <h2>🎵🎬 Áudios MP3 e vídeos MP4 da pasta SnapTube</h2>
-<p class="small">Selecione a pasta SnapTube. O BLUEVISION encontrará arquivos MP3 e MP4 e reproduzirá o tipo escolhido sem enviar os arquivos ao Render.</p>
+<p class="small">Selecione a pasta SnapTube. O MEDIABOX encontrará arquivos MP3 e MP4 e reproduzirá o tipo escolhido sem enviar os arquivos ao Render.</p>
 <label for="snaptubeFolder">Selecionar pasta SnapTube</label>
 <input id="snaptubeFolder" type="file" accept="audio/*,video/mp4,.mp3,.mp4" multiple webkitdirectory directory>
 <p id="folderStatus" class="muted">Nenhuma pasta selecionada.</p>
@@ -285,7 +266,7 @@ window.addEventListener('beforeunload',clearLocalPlayers);
 
     @app.get("/editor-video")
     def editor_video():
-        body = """<h1>🎬 BLUEVISION Studio</h1>
+        body = """<h1>🎬 MEDIABOX Studio</h1>
 <p>Editor multipista: importe seu vídeo, adicione textos em camadas, trilha de áudio, filtros e faça a exportação em MP4. Os arquivos só são enviados ao servidor quando você toca em Exportar.</p>
 <style>
 .studio{display:grid;gap:18px}.studio>.card{position:relative;overflow:hidden;border:1px solid #304b70;background:linear-gradient(145deg,rgba(19,31,54,.98),rgba(8,14,27,.98));box-shadow:0 16px 42px #0005}
@@ -324,7 +305,7 @@ window.addEventListener('beforeunload',clearLocalPlayers);
 </section>
 <section class="card" style="border:1px solid #70f0e6;background:linear-gradient(135deg,#12283a,#17152f)">
 <h2>✨ Edição automática por comando</h2>
-<p>Envie o vídeo e descreva o resultado. O BLUEVISION ajusta o estilo, texto, formato e procura uma faixa de áudio na sua biblioteca do servidor.</p>
+<p>Envie o vídeo e descreva o resultado. O MEDIABOX ajusta o estilo, texto, formato e procura uma faixa de áudio na sua biblioteca do servidor.</p>
 <label>O que você quer que o editor faça?</label>
 <textarea id="autoCommand" rows="4" maxlength="700" placeholder="Ex.: edição de carro cinematográfica, cortes dinâmicos, vertical 9:16, texto AGUDO MÁGICO e música chamada Energia Total"></textarea>
 <button type="button" id="autoApply">✨ Montar minha edição automaticamente</button>
@@ -434,7 +415,7 @@ $('exportBtn').addEventListener('click',async()=>{
  finally{btn.disabled=false;btn.textContent='🚀 Exportar vídeo MP4'}
 });
 </script>"""
-        return page("BLUEVISION Studio", body)
+        return page("MEDIABOX Studio", body)
 
     @app.get("/editor-video/musicas")
     def editor_video_musicas():
@@ -556,7 +537,7 @@ $('exportBtn').addEventListener('click',async()=>{
                 except subprocess.TimeoutExpired:
                     EXPORT_JOBS[job_id]={"status":"error","mensagem":"A exportação passou de 15 minutos. Tente um vídeo menor ou qualidade inferior."}
                 except Exception as exc:
-                    LOG.exception("Falha na exportação do BLUEVISION Studio")
+                    LOG.exception("Falha na exportação do MEDIABOX Studio")
                     EXPORT_JOBS[job_id]={"status":"error","mensagem":"Falha ao renderizar: "+str(exc)[:220]}
                 finally:
                     for path in job_files:
@@ -572,7 +553,7 @@ $('exportBtn').addEventListener('click',async()=>{
         except ValueError as exc:
             return jsonify({"erro":str(exc)}),400
         except Exception as exc:
-            LOG.exception("Falha ao preparar exportação do BLUEVISION Studio")
+            LOG.exception("Falha ao preparar exportação do MEDIABOX Studio")
             return jsonify({"erro":"Não foi possível iniciar a exportação: "+str(exc)[:220]}),500
         finally:
             for path in temporarios:
@@ -666,8 +647,8 @@ $('exportBtn').addEventListener('click',async()=>{
                     resposta = dados["candidates"][0]["content"]["parts"][0]["text"]
                 except Exception as exc:
                     erro = "A IA não respondeu nesta tentativa: " + str(exc)[:250]
-        body = """<h1>🤖 BLUEVISION IA</h1><p>Assistente para dúvidas, ideias de vídeos, títulos, roteiros e organização de conteúdo.</p><section class="card"><form method="post"><textarea name="pergunta" rows="5" maxlength="4000" placeholder="Digite sua pergunta..." required>{{pergunta}}</textarea><button>Enviar pergunta</button></form>{% if erro %}<p class="result">{{erro}}</p>{% endif %}{% if resposta %}<h2>Resposta</h2><div class="item result">{{resposta}}</div>{% endif %}</section>"""
-        return render_template_string(page("BLUEVISION IA", body), pergunta=request.form.get("pergunta", ""), resposta=resposta, erro=erro)
+        body = """<h1>🤖 MEDIABOX IA</h1><p>Assistente para dúvidas, ideias de vídeos, títulos, roteiros e organização de conteúdo.</p><section class="card"><form method="post"><textarea name="pergunta" rows="5" maxlength="4000" placeholder="Digite sua pergunta..." required>{{pergunta}}</textarea><button>Enviar pergunta</button></form>{% if erro %}<p class="result">{{erro}}</p>{% endif %}{% if resposta %}<h2>Resposta</h2><div class="item result">{{resposta}}</div>{% endif %}</section>"""
+        return render_template_string(page("MEDIABOX IA", body), pergunta=request.form.get("pergunta", ""), resposta=resposta, erro=erro)
 
     @app.route("/clima", methods=["GET", "POST"])
     def clima():
@@ -731,11 +712,11 @@ $('exportBtn').addEventListener('click',async()=>{
             total += len(items)
             total_bytes += tamanho
             resumo.append({"label": label, "count": len(items), "size": fmt_size(tamanho)})
-        body = """<h1>📊 Estatísticas do BLUEVISION</h1><p>Resumo dos arquivos armazenados na pasta de mídia.</p><section class="card"><div class="grid"><div class="item"><b>{{total}}</b><p>Arquivos encontrados</p></div><div class="item"><b>{{tamanho}}</b><p>Espaço ocupado</p></div>{% for x in resumo %}<div class="item"><b>{{x.count}}</b><p>{{x.label}} · {{x.size}}</p></div>{% endfor %}</div><p class="small">A contagem considera até 250 arquivos por categoria na tela da biblioteca; as estatísticas somam os arquivos retornados pela pasta.</p></section>"""
+        body = """<h1>📊 Estatísticas do MEDIABOX</h1><p>Resumo dos arquivos armazenados na pasta de mídia.</p><section class="card"><div class="grid"><div class="item"><b>{{total}}</b><p>Arquivos encontrados</p></div><div class="item"><b>{{tamanho}}</b><p>Espaço ocupado</p></div>{% for x in resumo %}<div class="item"><b>{{x.count}}</b><p>{{x.label}} · {{x.size}}</p></div>{% endfor %}</div><p class="small">A contagem considera até 250 arquivos por categoria na tela da biblioteca; as estatísticas somam os arquivos retornados pela pasta.</p></section>"""
         return render_template_string(page("Estatísticas", body), total=total, tamanho=fmt_size(total_bytes), resumo=resumo)
 
 
-    # Ferramentas adicionais BLUEVISION — processamento real com FFmpeg
+    # Ferramentas adicionais MEDIABOX — processamento real com FFmpeg
     from werkzeug.utils import secure_filename
     import json as _json
     import math as _math
@@ -769,15 +750,7 @@ $('exportBtn').addEventListener('click',async()=>{
 
     @app.get("/ferramentas")
     def ferramentas_mediabox():
-        body = """<h1>🧰 Ferramentas BLUEVISION</h1><p>Escolha uma ferramenta para processar seus arquivos.</p><section class="card"><div class="grid">
-<a class="item" href="/ferramentas/capa">🖼️ <b>Capturador de capas</b><p class="small">Extrair um quadro do vídeo</p></a>
-<a class="item" href="/ferramentas/compressor">🗜️ <b>Compressor de vídeo</b><p class="small">Reduzir tamanho em MP4</p></a>
-<a class="item" href="/ferramentas/informacoes">🔎 <b>Informações de mídia</b><p class="small">Detalhes técnicos</p></a>
-<a class="item" href="/ferramentas/velocidade">⏩ <b>Controlador de velocidade</b><p class="small">Acelerar ou desacelerar</p></a>
-<a class="item" href="/ferramentas/fundo">✂️ <b>Removedor de fundo</b><p class="small">Fundos de cor uniforme</p></a>
-<a class="item" href="/ferramentas/colagem">🎞️ <b>Colagem de vídeos</b><p class="small">Até quatro vídeos em uma tela</p></a>
-<a class="item" href="/ferramentas/equalizador">🎚️ <b>Equalizador de áudio</b><p class="small">Ajustar frequências</p></a>
-</div></section>"""
+        body = """<h1>🎚️ Equalizador de áudio</h1><p>O Equalizador PRO continua disponível com 10 bandas, prévia e exportação.</p><section class="card"><a class="item" href="/ferramentas/equalizador">Abrir Equalizador PRO</a></section>"""
         return page("Ferramentas", body)
 
     @app.route("/ferramentas/capa", methods=["GET", "POST"])
