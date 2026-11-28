@@ -469,7 +469,7 @@ public class FloatingOverlayService extends Service {
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                 request.setAllowedOverMetered(true);
                 request.setAllowedOverRoaming(false);
-                request.setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_DOWNLOADS, filename);
+                request.setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_MOVIES, filename);
                 DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
                 if (manager == null) throw new IllegalStateException("Gerenciador de downloads indisponível.");
                 manager.enqueue(request);
