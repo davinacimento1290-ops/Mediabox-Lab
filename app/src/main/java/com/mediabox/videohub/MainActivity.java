@@ -182,7 +182,7 @@ public class MainActivity extends Activity {
         try {
             String fileName = URLUtil.guessFileName(item.url, item.contentDisposition, item.mimeType);
             if (fileName == null || fileName.trim().isEmpty()) fileName = "mediabox_video.mp4";
-            fileName = fileName.replace('/', '_').replace('\\\\', '_').replace(':', '_').replace('*', '_').replace('?', '_').replace('"', '_').replace('<', '_').replace('>', '_').replace('|', '_').trim();
+            fileName = fileName.replace('/', '_').replace((char) 92, '_').replace(':', '_').replace('*', '_').replace('?', '_').replace('"', '_').replace('<', '_').replace('>', '_').replace('|', '_').trim();
             if (fileName.isEmpty()) fileName = "mediabox_video.mp4";
 
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(item.url));
